@@ -2,7 +2,16 @@
 <html lang="he" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>משפחת מרטון — שמות המשפחה</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#16202c">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="משפחת מרטון">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 </head>
 <body>
 <title>משפחת מרטון — שמות המשפחה</title>
@@ -192,9 +201,16 @@ body{
   border:1px solid var(--accent-line);
   border-radius:16px;padding:18px 16px 15px;
 }
-.matriarch .nm{font-family:'Frank Ruhl Libre',serif;font-size:21px}
+.matriarch .nm{font-family:'Frank Ruhl Libre',serif;font-size:21px;line-height:1.25}
 .matriarch .dt{color:var(--accent);font-weight:700;font-size:14px;margin-top:3px}
-.matriarch .m-spouse{font-size:14.5px;color:var(--ink);margin-top:8px;padding-top:8px;border-top:1px solid var(--accent-line)}
+/* שני ראשי המשפחה זה לצד זה, באותו גודל */
+.matriarch .couple{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+.matriarch .head{flex:1 1 0;min-width:150px;max-width:300px}
+.matriarch .couple-heart{flex:0 0 auto;color:var(--accent);font-size:22px;padding:0 2px}
+@media (max-width:540px){
+  .matriarch .couple{flex-direction:column;gap:12px}
+  .matriarch .head{max-width:100%}
+}
 
 /* ---- toolbar ---- */
 .toolbar{
@@ -221,6 +237,30 @@ body{
 }
 @media (prefers-reduced-motion: reduce){.linkbtn.addbtn{animation:none}}
 .noresults{display:none;text-align:center;color:var(--muted);padding:30px 10px;font-size:16px}
+
+/* ---- באנר התקנת אפליקציה ---- */
+.install-banner{
+  display:none;position:fixed;left:0;right:0;bottom:0;z-index:250;
+  background:var(--btn-bg);color:var(--btn-ink);
+  align-items:center;gap:10px;
+  padding:12px 16px calc(12px + env(safe-area-inset-bottom));
+  box-shadow:0 -6px 20px rgba(0,0,0,.25);
+  animation:installUp .35s ease;
+}
+.install-banner.show{display:flex}
+@keyframes installUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.install-txt{flex:1;font-size:14.5px;font-weight:700;line-height:1.3}
+.install-btn{
+  flex:0 0 auto;background:var(--accent);color:#fff;border:none;border-radius:50px;
+  padding:9px 20px;font:inherit;font-size:14px;font-weight:800;cursor:pointer;
+}
+.install-btn:hover{filter:brightness(1.08)}
+.install-x{
+  flex:0 0 auto;background:transparent;border:none;color:var(--btn-ink);
+  opacity:.7;font-size:16px;cursor:pointer;padding:4px 6px;
+}
+.install-x:hover{opacity:1}
+@media (prefers-reduced-motion: reduce){.install-banner{animation:none}}
 
 /* ---- הוספת שם: מודל ---- */
 .modal-backdrop{
@@ -549,6 +589,12 @@ details.branch.hidden{display:none}
   .p-date{color:#444}
 }
 </style>
+
+<div class="install-banner" id="installBanner">
+  <span class="install-txt" id="installTxt">📲 התקנת האפליקציה למסך הבית</span>
+  <button class="install-btn" id="installBtn">התקנה</button>
+  <button class="install-x" id="installClose" aria-label="סגירה">✕</button>
+</div>
 
 <div class="app">
   <nav class="tabs-nav" aria-label="ניווט ראשי">
@@ -1091,9 +1137,14 @@ function unitHTML(p, fam){
 /* ---------- render ---------- */
 const branchesEl = document.getElementById('branches');
 function buildNamesTab(){
-  document.getElementById('matriarchBox').innerHTML =
-    `<div class="nm">${esc(MATRIARCH.n)}</div><div class="dt">${esc(MATRIARCH.d)}</div>` +
-    (MATRIARCH.s ? `<div class="m-spouse">${esc(MATRIARCH.s.r)}: ${esc(MATRIARCH.s.n)}${MATRIARCH.s.d?' — '+esc(MATRIARCH.s.d):''}</div>` : '');
+  const m = MATRIARCH;
+  document.getElementById('matriarchBox').innerHTML = m.s
+    ? `<div class="couple">
+         <div class="head"><div class="nm">${esc(m.n)}</div><div class="dt">${esc(m.d)}</div></div>
+         <div class="couple-heart">♥</div>
+         <div class="head"><div class="nm">${esc(m.s.n)}</div>${m.s.d?`<div class="dt">${esc(m.s.d)}</div>`:''}</div>
+       </div>`
+    : `<div class="nm">${esc(m.n)}</div><div class="dt">${esc(m.d)}</div>`;
 
   branchesEl.innerHTML = BRANCHES.map((b,i) => {
     const bFam = famOf(b.n, FAMILY_ROOT);
@@ -1843,6 +1894,57 @@ addForm.addEventListener('submit', async e=>{
     addSubmit.innerHTML = '<span>הוספת השם</span>';
   }
 });
+
+/* ---------- PWA: רישום service worker (התקנה למסך הבית + אופליין) ---------- */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('service-worker.js').catch(()=>{});
+  });
+}
+
+/* ---------- באנר התקנת אפליקציה ---------- */
+(function initInstallBanner(){
+  const banner = document.getElementById('installBanner');
+  const btn = document.getElementById('installBtn');
+  const txt = document.getElementById('installTxt');
+  const closeBtn = document.getElementById('installClose');
+  if(!banner) return;
+
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+  const dismissed = ()=>{ try{ return localStorage.getItem('installDismissed')==='1'; }catch(e){ return false; } };
+  const dismiss = ()=>{ try{ localStorage.setItem('installDismissed','1'); }catch(e){} banner.classList.remove('show'); };
+  let deferredPrompt = null;
+
+  closeBtn.addEventListener('click', dismiss);
+  window.addEventListener('appinstalled', ()=>{ dismiss(); });
+
+  if(isStandalone || dismissed()) return; /* כבר מותקן / נסגר — לא מציגים */
+
+  if(isIOS){
+    /* אייפון: אין התקנה אוטומטית — מציגים הנחיה */
+    txt.innerHTML = 'התקנת האפליקציה: הקישו על 🔗 שיתוף, ואז «הוסף למסך הבית»';
+    btn.style.display = 'none';
+    banner.classList.add('show');
+  }
+
+  /* אנדרואיד/כרום: מיירטים את אירוע ההתקנה ומציגים כפתור */
+  window.addEventListener('beforeinstallprompt', (e)=>{
+    e.preventDefault();
+    deferredPrompt = e;
+    txt.textContent = '📲 התקנת האפליקציה למסך הבית';
+    btn.style.display = '';
+    banner.classList.add('show');
+  });
+
+  btn.addEventListener('click', async ()=>{
+    if(!deferredPrompt) return;
+    deferredPrompt.prompt();
+    try{ await deferredPrompt.userChoice; }catch(e){}
+    deferredPrompt = null;
+    banner.classList.remove('show');
+  });
+})();
 </script>
 
 </body>
