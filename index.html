@@ -318,11 +318,31 @@ body{
 .parent-chosen button{
   background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;
 }
+.name-preview{
+  margin-top:7px;padding:9px 13px;border-radius:10px;
+  background:var(--accent-soft);border:1px solid var(--accent-line);
+  font-size:14px;color:var(--ink);
+}
+.name-preview b{font-weight:800;color:var(--accent)}
+.name-preview small{display:block;color:var(--muted);font-size:11.5px;margin-top:2px}
 .modal-msg{font-size:14px;margin-bottom:12px;min-height:0}
 .modal-msg.ok{color:#1e8449}
 .modal-msg.err{color:#c0392b}
 #addSubmit{margin-top:2px}
 #addSubmit:disabled{opacity:.6;cursor:not-allowed}
+.fld-row{display:flex;gap:10px}
+.fld-row .fld{flex:1;min-width:0}
+.fld-divider{
+  font-size:12px;font-weight:800;color:var(--muted);letter-spacing:1px;
+  margin:14px 0 10px;padding-top:12px;border-top:1px solid var(--line);
+}
+.edit-actions{display:flex;flex-direction:column;gap:10px;margin-top:4px}
+.del-btn{
+  background:transparent;border:1.5px solid #d9534f;color:#c0392b;
+  border-radius:12px;padding:11px;font:inherit;font-size:15px;font-weight:700;cursor:pointer;
+}
+.del-btn:hover{background:rgba(217,83,79,.08)}
+.del-btn:disabled{opacity:.5;cursor:not-allowed}
 
 .sparkle-piece{
   position:absolute;pointer-events:none;font-size:16px;color:var(--accent);
@@ -380,6 +400,17 @@ details[open] .chev{transform:rotate(90deg)}
   margin-inline-start:auto;color:var(--accent);
   font-weight:600;font-size:13.5px;white-space:nowrap;
 }
+.row .dt-death{color:#7d6a4a;font-weight:600;font-size:12.5px;white-space:nowrap;margin-inline-start:auto}
+.row .dt + .dt-death{margin-inline-start:8px}
+.edit-dot{
+  flex-shrink:0;width:24px;height:24px;border-radius:50%;
+  border:1px solid var(--line);background:var(--card);color:var(--muted);
+  cursor:pointer;font-size:12px;line-height:1;
+  display:flex;align-items:center;justify-content:center;
+  opacity:.35;transition:opacity .15s, color .15s, background .15s;
+}
+.row:hover .edit-dot, .edit-dot:focus-visible{opacity:1}
+.edit-dot:hover{background:var(--accent-soft);color:var(--accent)}
 .kids{
   margin-top:7px;margin-inline-start:6px;
   border-inline-start:2px solid var(--accent-line);
@@ -413,6 +444,47 @@ details.branch.hidden{display:none}
 }
 .tab-btn:hover{background:var(--accent-soft);color:var(--accent)}
 .tab-btn.active{background:var(--btn-bg);color:var(--btn-ink);box-shadow:0 4px 12px rgba(26,42,58,.2)}
+.tab-short{display:none}
+
+/* ---- התאמה למסך טלפון ---- */
+@media (max-width:600px){
+  .tab-full{display:none}
+  .tab-short{display:inline}
+  .tabs-nav{
+    padding:8px 6px;gap:6px;
+    padding-top:calc(8px + env(safe-area-inset-top));
+  }
+  .tab-btn{padding:8px 14px;font-size:14.5px;white-space:nowrap;gap:5px}
+
+  .wrap{padding:12px 12px 60px}
+  .bsd{margin:0 2px 6px}
+  .hero{padding:16px 14px 16px;border-radius:18px}
+  .hero .icon{font-size:30px}
+  .hero h1{font-size:20px;margin:6px 0 2px;letter-spacing:.5px}
+  .hero h2{font-size:.92rem;margin-bottom:10px;letter-spacing:2px}
+  .hero-corner{width:24px;height:24px}
+  .status{padding:5px 13px;font-size:12.5px;margin-bottom:10px}
+  .sync-pill{margin:-6px 0 9px;font-size:11px}
+  .search{padding:10px 14px;font-size:15px;margin-bottom:10px}
+  .print-btn{padding:11px 18px;font-size:15px}
+  .matriarch{margin:14px 0 4px;padding:12px 12px 10px}
+  .matriarch .nm{font-size:16.5px;line-height:1.2}
+  .matriarch .dt{font-size:13px;margin-top:1px}
+  .matriarch .couple{gap:6px}
+  .matriarch .couple-heart{font-size:17px}
+  /* בנייד: הכותרת "ענפי המשפחה" מוסתרת כדי שהכפתורים ייכנסו בשורה אחת */
+  .toolbar{margin:12px 2px 6px;gap:7px}
+  .toolbar .ttl{display:none}
+  .linkbtn{font-size:13.5px;padding:4px 5px}
+  .linkbtn.addbtn{padding:8px 15px;font-size:13.5px}
+  summary{padding:14px 14px}
+  .b-body{padding:6px 14px 14px}
+  .tree-viewport{height:62vh;min-height:340px}
+  .wrap-wide{padding:10px 10px 40px}
+  .tree-search{flex:1 1 100%}
+  .tree-toolbar{gap:6px;margin:6px 2px 8px}
+  .tool-btn{padding:5px 11px;font-size:13px}
+}
 .panel{display:none}
 .panel.active{display:block}
 .hidden{display:none!important}
@@ -477,6 +549,29 @@ details.branch.hidden{display:none}
 }
 .e-age{font-size:12px;color:var(--muted);margin-top:6px;font-weight:600}
 .ev-empty{text-align:center;color:var(--muted);font-size:18px;padding:50px 10px}
+
+/* ---- נשמות החודש (יארצייטים) ---- */
+.memorial-section{margin-top:38px;padding-top:26px;border-top:1px solid var(--line)}
+.memorial-head{
+  text-align:center;font-family:'Frank Ruhl Libre',serif;font-size:23px;color:var(--ink);
+  margin-bottom:18px;
+}
+.memorial-sub{display:block;font-family:'Assistant',sans-serif;font-size:13px;color:var(--muted);font-weight:400;letter-spacing:1px;margin-top:2px}
+.memorial-list{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;
+  max-width:720px;margin:0 auto;
+}
+.memorial-card{
+  background:var(--card);border:1px solid var(--line);border-radius:14px;
+  border-inline-start:3px solid #7d6a4a;
+  padding:12px 15px;display:flex;align-items:center;gap:10px;
+}
+.memorial-card.is-today{border-inline-start-color:var(--accent);background:var(--accent-soft)}
+.memorial-flame{font-size:20px;flex-shrink:0}
+.memorial-info{min-width:0}
+.memorial-name{font-weight:700;font-size:14.5px;color:var(--ink);line-height:1.25}
+.memorial-date{font-size:12.5px;color:var(--muted);margin-top:2px}
+.memorial-today-tag{font-size:11px;font-weight:800;color:var(--accent)}
 @media (max-width:600px){
   .ev-top{font-size:19px}
   .ev-month{font-size:40px}
@@ -493,7 +588,23 @@ details.branch.hidden{display:none}
   margin:8px 4px 12px;
 }
 .tree-hint{font-size:12.5px;color:var(--muted)}
+@media (max-width:600px){.tree-hint-wide{display:none}}
 .tree-toolbar .sp{flex:1}
+.tree-search{
+  flex:0 1 220px;padding:7px 14px;font:inherit;font-size:14px;
+  color:var(--ink);background:var(--card);
+  border:1.5px solid var(--line);border-radius:50px;
+  transition:border-color .2s, box-shadow .2s;
+}
+.tree-search::placeholder{color:var(--muted)}
+.tree-search:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.dnode.d-match{
+  border-color:var(--accent)!important;
+  box-shadow:0 0 0 3px var(--accent), 0 8px 18px rgba(197,160,89,.4)!important;
+  animation:matchPulse 1.4s ease-in-out infinite;
+}
+@keyframes matchPulse{50%{box-shadow:0 0 0 4px var(--accent), 0 8px 22px rgba(197,160,89,.6)!important}}
+@media (prefers-reduced-motion: reduce){.dnode.d-match{animation:none}}
 .tool-btn{
   background:var(--card);border:1px solid var(--line);border-radius:10px;
   cursor:pointer;font:inherit;font-size:14px;font-weight:700;color:var(--ink);
@@ -538,10 +649,11 @@ details.branch.hidden{display:none}
 .d-name{font-weight:800;font-size:12.5px;line-height:1.25;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .d-spouse{font-size:11px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .d-badge{
-  position:absolute;bottom:-11px;left:50%;transform:translateX(-50%);
+  position:absolute;bottom:-10px;left:50%;transform:translateX(-50%);
   background:var(--bc,var(--accent));color:#fff;
-  font-size:10px;font-weight:800;border-radius:10px;padding:1px 8px;
-  white-space:nowrap;display:flex;align-items:center;gap:3px;
+  font-size:10px;font-weight:800;border-radius:50%;
+  width:20px;height:20px;
+  display:flex;align-items:center;justify-content:center;
   box-shadow:0 2px 6px rgba(0,0,0,.2);
 }
 .d-arrow{display:inline-block;transition:transform .2s;font-size:9px}
@@ -563,6 +675,8 @@ details.branch.hidden{display:none}
   @page{margin:10mm}
   body{background:#fff !important}
   .app{display:none !important}
+  /* אלמנטים מקובעים/צפים מודפסים בכל עמוד ומכסים את הרשימה — מסתירים בהדפסה */
+  .install-banner, .modal-backdrop, .sparkle-piece{display:none !important}
   #print-sheet{display:block;direction:rtl;color:#000;background:#fff}
   .p-stamp{font-size:11px;color:#555;font-weight:600;text-align:left;margin-bottom:6px}
   .p-head{
@@ -598,9 +712,9 @@ details.branch.hidden{display:none}
 
 <div class="app">
   <nav class="tabs-nav" aria-label="ניווט ראשי">
-    <button class="tab-btn active" id="tabBtnNames"><span>📜</span> שמות המשפחה</button>
-    <button class="tab-btn" id="tabBtnEvents"><span>🎂</span> אירועי החודש</button>
-    <button class="tab-btn" id="tabBtnTree"><span>🌳</span> עץ המשפחה</button>
+    <button class="tab-btn active" id="tabBtnNames"><span>📜</span> <span class="tab-full">שמות המשפחה</span><span class="tab-short">שמות</span></button>
+    <button class="tab-btn" id="tabBtnEvents"><span>🎂</span> <span class="tab-full">אירועי החודש</span><span class="tab-short">אירועים</span></button>
+    <button class="tab-btn" id="tabBtnTree"><span>🌳</span> <span class="tab-full">עץ המשפחה</span><span class="tab-short">עץ</span></button>
   </nav>
 
   <div class="panel active" id="panel-names">
@@ -656,13 +770,19 @@ details.branch.hidden{display:none}
 
       <div class="event-grid" id="eventGrid"></div>
       <div class="ev-empty hidden" id="evEmpty">אין ימי הולדת החודש 🎈</div>
+
+      <div class="memorial-section hidden" id="memorialSection">
+        <div class="memorial-head">🕯️ נשמות החודש <span class="memorial-sub">לזכר ולעילוי נשמתם</span></div>
+        <div class="memorial-list" id="memorialList"></div>
+      </div>
     </div>
   </div>
 
   <div class="panel" id="panel-tree">
     <div class="wrap-wide">
       <div class="tree-toolbar">
-        <span class="tree-hint">לחיצה על כרטיס פותחת ענף · גרירה להזזה · גלגלת/כפתורים לזום</span>
+        <input class="tree-search" id="treeSearch" type="search" placeholder="🔍 חיפוש בעץ..." aria-label="חיפוש בעץ">
+        <span class="tree-hint tree-hint-wide">גרירה להזזה · גלגלת/כפתורים לזום</span>
         <span class="sp"></span>
         <button class="tool-btn" id="treeOpenAll">פתח הכל</button>
         <button class="tool-btn" id="treeCloseAll">סגור הכל</button>
@@ -705,9 +825,21 @@ details.branch.hidden{display:none}
       </label>
 
       <label class="fld">
-        <span>תאריך לידה עברי (אופציונלי)</span>
-        <input type="text" id="addDate" placeholder="לדוגמה: יד טבת תשפ&quot;ו">
+        <span>שם האם (לתפילה) *</span>
+        <input type="text" id="addMotherName" placeholder="ייקבע אוטומטית לפי ההורה שנבחר" autocomplete="off">
+        <div class="name-preview hidden" id="namePreview"></div>
       </label>
+
+      <div class="fld-row">
+        <label class="fld">
+          <span>תאריך לידה עברי</span>
+          <input type="text" id="addDate" placeholder="יד טבת תשפ&quot;ו">
+        </label>
+        <label class="fld">
+          <span>🕯️ יום פטירה (אם ח"ו)</span>
+          <input type="text" id="addDeath" placeholder="ריק אם בחיים">
+        </label>
+      </div>
 
       <label class="fld-check">
         <input type="checkbox" id="addMarriedCheck">
@@ -718,10 +850,10 @@ details.branch.hidden{display:none}
           <span>שם בן/בת הזוג</span>
           <input type="text" id="addSpouseName" placeholder="השם המלא של בן/בת הזוג">
         </label>
-        <label class="fld">
-          <span>תאריך לידה של בן/בת הזוג (אופציונלי)</span>
-          <input type="text" id="addSpouseDate" placeholder="לדוגמה: ה תשרי תשפ&quot;ה">
-        </label>
+        <div class="fld-row">
+          <label class="fld"><span>תאריך לידה</span><input type="text" id="addSpouseDate" placeholder="ה תשרי תשפ&quot;ה"></label>
+          <label class="fld"><span>🕯️ יום פטירה</span><input type="text" id="addSpouseDeath" placeholder="ריק אם בחיים"></label>
+        </div>
       </div>
 
       <label class="fld-check">
@@ -742,10 +874,55 @@ details.branch.hidden{display:none}
   </div>
 </div>
 
+<div class="modal-backdrop" id="editBackdrop">
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="editTitle">
+    <button class="modal-close" id="editClose" aria-label="סגירה">✕</button>
+    <h3 id="editTitle">✏️ עריכת שם</h3>
+    <p class="modal-sub">עריכה ומחיקה דורשות קוד משפחתי</p>
+
+    <form id="editForm">
+      <label class="fld">
+        <span>שם מלא *</span>
+        <input type="text" id="edName" required>
+      </label>
+      <label class="fld">
+        <span>שם משפחה (אם עברה לשם חדש)</span>
+        <input type="text" id="edSurname" placeholder="ריק = יורש מההורים">
+      </label>
+      <div class="fld-row">
+        <label class="fld"><span>תאריך לידה עברי</span><input type="text" id="edDate"></label>
+        <label class="fld"><span>🕯️ יום פטירה (יארצייט)</span><input type="text" id="edDeath"></label>
+      </div>
+
+      <div class="fld-divider">בן / בת הזוג (אופציונלי)</div>
+      <label class="fld">
+        <span>שם בן/בת הזוג</span>
+        <input type="text" id="edSpouseName" placeholder="ריק = אין בן/בת זוג">
+      </label>
+      <div class="fld-row">
+        <label class="fld"><span>תאריך לידה</span><input type="text" id="edSpouseDate"></label>
+        <label class="fld"><span>🕯️ יום פטירה</span><input type="text" id="edSpouseDeath"></label>
+      </div>
+
+      <label class="fld">
+        <span>קוד משפחתי *</span>
+        <input type="password" id="edCode" placeholder="הקוד שהמשפחה קבעה" required>
+      </label>
+
+      <div class="modal-msg" id="editMsg"></div>
+
+      <div class="edit-actions">
+        <button type="submit" class="print-btn" id="editSubmit"><span>שמירת השינויים</span></button>
+        <button type="button" class="del-btn" id="editDelete">🗑️ מחיקת שם זה</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <div id="print-sheet" aria-hidden="true"></div>
 
 <script>
-const SEED_MATRIARCH = {n:'מרת שיינדל בת פרומעט', d:'כח סיון תרצ"ט', s:{r:'בעלה', n:'יוסף יהודה בן יעקב ע"ה', d:'כ\' סיון תרצ"ג'}};
+const SEED_MATRIARCH = {n:'מרת שיינדל בת פרומעט', d:'כח סיון תרצ"ט', s:{r:'בעלה', n:'הרה"ח ר\' יוסף יהודה בן יעקב ע"ה', d:'כ\' סיון תרצ"ג', dd:'כ"ט כסלו תשע"ד'}};
 
 const SEED_BRANCHES = [
 {n:'שרה בריינדל בת שיינדל (גינזבורג)', d:'יד טבת תשי"ט', s:{r:'בעלה', n:'ברוך הלל בן חנה רבקה', d:'ה תשרי תשט"ו'}, c:[
@@ -1106,18 +1283,25 @@ function countPersons(p){
   return n;
 }
 
-function rowHTML(name, date, cls, rel, fam){
+let editMode = false; /* נהיה true כשמחוברים לגיליון החי */
+
+function rowHTML(name, date, cls, rel, fam, death, editBtn){
   return `<div class="row ${cls}" data-name="${esc(name)} ${esc(fam||'')}">
-    ${rel?`<span class="rel">${rel}:</span>`:''}
+    ${rel?`<span class="rel">${esc(rel)}:</span>`:''}
     <span class="nm">${esc(name)}</span>
     ${date?`<span class="dt">${esc(date)}</span>`:''}
+    ${death?`<span class="dt-death" title="יום פטירה">🕯️ ${esc(death)}</span>`:''}
+    ${editBtn||''}
   </div>`;
+}
+function editBtnHTML(p){
+  return (editMode && p && p.id) ? `<button class="edit-dot" data-editid="${esc(String(p.id))}" title="עריכה / מחיקה" aria-label="עריכת שם זה">✎</button>` : '';
 }
 
 function kidHTML(p, fam){
   const f = famOf(p.n, fam);
-  let h = `<div class="kid">` + rowHTML(p.n, p.d, '', '', f);
-  if(p.s) h += rowHTML(p.s.n, p.s.d, '', p.s.r, f);
+  let h = `<div class="kid">` + rowHTML(p.n, p.d, '', '', f, p.dd, editBtnHTML(p));
+  if(p.s) h += rowHTML(p.s.n, p.s.d, '', p.s.r, f, p.s.dd);
   if(p.c && p.c.length){
     h += `<div class="kids">` + p.c.map(k=>kidHTML(k, f)).join('') + `</div>`;
   }
@@ -1126,8 +1310,8 @@ function kidHTML(p, fam){
 
 function unitHTML(p, fam){
   const f = famOf(p.n, fam);
-  let h = `<div class="unit">` + rowHTML(p.n, p.d, 'head', '', f);
-  if(p.s) h += rowHTML(p.s.n, p.s.d, '', p.s.r, f);
+  let h = `<div class="unit">` + rowHTML(p.n, p.d, 'head', '', f, p.dd, editBtnHTML(p));
+  if(p.s) h += rowHTML(p.s.n, p.s.d, '', p.s.r, f, p.s.dd);
   if(p.c && p.c.length){
     h += `<div class="kids-label">ילדיהם</div><div class="kids">` + p.c.map(k=>kidHTML(k, f)).join('') + `</div>`;
   }
@@ -1156,7 +1340,6 @@ function buildNamesTab(){
           <div class="b-name">${esc(b.n)}${b.n.includes('(')?'':' <span class="b-fam">('+esc(bFam)+')</span>'} <span class="dt" style="font-family:'Assistant',sans-serif;font-size:13.5px">${esc(b.d)}</span></div>
           ${b.s?`<div class="b-sub">${b.s.r}: ${esc(b.s.n)}${b.s.d?' — '+esc(b.s.d):''}</div>`:''}
         </span>
-        <span class="b-count">${countPersons(b)} נפשות</span>
       </summary>
       <div class="b-body">
         ${(b.c||[]).map(u=>unitHTML(u, bFam)).join('')}
@@ -1165,8 +1348,8 @@ function buildNamesTab(){
   }).join('');
 
   total = 1 + BRANCHES.reduce((a,b)=>a+countPersons(b),0);
-  document.getElementById('status').innerHTML = `ברשימה <b id="total">${total}</b> שמות`;
-  document.getElementById('foot').textContent = `סה"כ ${total} שמות · ${BRANCHES.length} ענפי משפחה · צאצאי ${MATRIARCH.n}`;
+  document.getElementById('status').innerHTML = `שמות משפחתנו לתפילה · בלי עין הרע`;
+  document.getElementById('foot').textContent = `צאצאי ${MATRIARCH.n}${MATRIARCH.s?' ו'+MATRIARCH.s.n:''} · יעמדו על הברכה`;
 }
 
 /* ---------- search ---------- */
@@ -1202,7 +1385,7 @@ searchEl.addEventListener('input', () => {
       b.querySelectorAll('.unit.hidden,.row.hidden,.kid.hidden').forEach(el=>el.classList.remove('hidden'));
     });
     document.getElementById('noresults').style.display='none';
-    document.getElementById('status').innerHTML = `ברשימה <b id="total">${total}</b> שמות`;
+    document.getElementById('status').innerHTML = `שמות משפחתנו לתפילה · בלי עין הרע`;
     return;
   }
 
@@ -1256,22 +1439,22 @@ function hebDateNow(){
 }
 function flatRows(p, out, fam){
   const f = famOf(p.n, fam);
-  out.push({n:p.n, d:p.d, fam:f});
-  if(p.s) out.push({n:p.s.n, d:p.s.d, rel:p.s.r, fam:f});
+  out.push({n:p.n, d:p.d, dd:p.dd, fam:f});
+  if(p.s) out.push({n:p.s.n, d:p.s.d, dd:p.s.dd, rel:p.s.r, fam:f});
   (p.c||[]).forEach(k=>flatRows(k,out,f));
 }
 function buildPrintSheet(){
   let h = `<div class="p-stamp">עודכן: ${hebDateNow()}</div>
   <div class="p-head"><h1 class="p-title">שמות של משפחתינו היקרים</h1><div class="p-sub">משפחת מרטון · ב"ה</div></div>
   <div class="p-cols">`;
-  h += `<div class="p-row"><b>${esc(MATRIARCH.n)}</b> — <span class="p-date">${esc(MATRIARCH.d)}</span></div>`;
-  if(MATRIARCH.s) h += `<div class="p-row"><b>${esc(MATRIARCH.s.r)}:</b> ${esc(MATRIARCH.s.n)}${MATRIARCH.s.d?` — <span class="p-date">${esc(MATRIARCH.s.d)}</span>`:''}</div>`;
+  h += `<div class="p-row"><b>${esc(MATRIARCH.n)}</b>${MATRIARCH.d?` — <span class="p-date">${esc(MATRIARCH.d)}</span>`:''}${MATRIARCH.dd?` <span class="p-date">🕯️${esc(MATRIARCH.dd)}</span>`:''}</div>`;
+  if(MATRIARCH.s) h += `<div class="p-row"><b>${esc(MATRIARCH.s.r)}:</b> ${esc(MATRIARCH.s.n)}${MATRIARCH.s.d?` — <span class="p-date">${esc(MATRIARCH.s.d)}</span>`:''}${MATRIARCH.s.dd?` <span class="p-date">🕯️${esc(MATRIARCH.s.dd)}</span>`:''}</div>`;
   BRANCHES.forEach(b=>{
     const bFam = famOf(b.n, FAMILY_ROOT);
     h += `<div class="p-branch">${esc(b.n)}${b.n.includes('(')?'':' ('+esc(bFam)+')'}</div>`;
     const rows=[]; flatRows(b,rows,FAMILY_ROOT);
     rows.forEach(p=>{
-      h += `<div class="p-row">${p.rel?`<b>${p.rel}:</b> `:''}${esc(p.n)}${p.d?` — <span class="p-date">${esc(p.d)}</span>`:''}</div>`;
+      h += `<div class="p-row">${p.rel?`<b>${p.rel}:</b> `:''}${esc(p.n)}${p.d?` — <span class="p-date">${esc(p.d)}</span>`:''}${p.dd?` <span class="p-date">🕯️${esc(p.dd)}</span>`:''}</div>`;
     });
   });
   h += `</div>`;
@@ -1381,25 +1564,51 @@ function buildEvents(){
   const grid = document.getElementById('eventGrid');
   if(!events.length){
     document.getElementById('evEmpty').classList.remove('hidden');
-    return;
+  } else {
+    grid.innerHTML = events.map((e,i)=>{
+      const isToday = e.h.day === curDay;
+      const male = (' '+e.n+' ').includes(' בן ');
+      let age = '';
+      if(e.h.year){
+        const a = curYear - e.h.year;
+        if(a > 0 && a < 130) age = `<div class="e-age">${male?'בן':'בת'} ${a} 🎉</div>`;
+      }
+      const dateTxt = e.d.trim().split(/\s+/).slice(0,-1).join(' ') || e.d;
+      return `<div class="event-card${isToday?' is-today':''}">
+        <div class="event-icon">${isToday?'🥳':emojis[i % emojis.length]}</div>
+        <span class="e-name">${esc(e.n)}</span>
+        <div class="e-fam">משפחת ${esc(e.fam)}</div>
+        <div class="e-date">${esc(e.h.year ? dateTxt : e.d)}</div>
+        ${age}
+      </div>`;
+    }).join('');
   }
-  grid.innerHTML = events.map((e,i)=>{
-    const isToday = e.h.day === curDay;
-    const male = (' '+e.n+' ').includes(' בן ');
-    let age = '';
-    if(e.h.year){
-      const a = curYear - e.h.year;
-      if(a > 0 && a < 130) age = `<div class="e-age">${male?'בן':'בת'} ${a} 🎉</div>`;
-    }
-    const dateTxt = e.d.trim().split(/\s+/).slice(0,-1).join(' ') || e.d;
-    return `<div class="event-card${isToday?' is-today':''}">
-      <div class="event-icon">${isToday?'🥳':emojis[i % emojis.length]}</div>
-      <span class="e-name">${esc(e.n)}</span>
-      <div class="e-fam">משפחת ${esc(e.fam)}</div>
-      <div class="e-date">${esc(e.h.year ? dateTxt : e.d)}</div>
-      ${age}
-    </div>`;
-  }).join('');
+
+  /* --- נשמות החודש (יארצייטים) --- */
+  const yahr = [];
+  all.forEach(p=>{
+    const h = parseHebDate(p.dd);
+    if(h && inCurrentMonth(h.month, curMonth)) yahr.push({...p, h});
+  });
+  yahr.sort((a,b)=>a.h.day - b.h.day);
+  const memSection = document.getElementById('memorialSection');
+  const memList = document.getElementById('memorialList');
+  if(yahr.length){
+    memList.innerHTML = yahr.map(e=>{
+      const isToday = e.h.day === curDay;
+      const dateTxt = e.dd.trim();
+      return `<div class="memorial-card${isToday?' is-today':''}">
+        <span class="memorial-flame">🕯️</span>
+        <div class="memorial-info">
+          <div class="memorial-name">${esc(e.n)}</div>
+          <div class="memorial-date">${esc(dateTxt)}${isToday?' · <span class="memorial-today-tag">היום</span>':''}</div>
+        </div>
+      </div>`;
+    }).join('');
+    memSection.classList.remove('hidden');
+  } else {
+    memSection.classList.add('hidden');
+  }
 }
 
 /* ---------- עץ המשפחה: דיאגרמה חזותית ---------- */
@@ -1432,6 +1641,7 @@ function assignIds(node, id){
 }
 let treeModel;
 let collapsedIds = new Set();
+let matchedIds = new Set();
 function buildTreeModel(){
   treeModel = {
     name: shortName(MATRIARCH.n), full: MATRIARCH.n, date: MATRIARCH.d,
@@ -1481,13 +1691,13 @@ function nodeHTML(n){
   const hasKids = n.kids.length > 0;
   const isCollapsed = !n.isRoot && collapsedIds.has(n.id);
   const tip = `${n.full}${n.date?' — '+n.date:''}`;
-  return `<div class="dnode${n.isRoot?' d-root':''}${hasKids?' has-kids':''}${hasKids&&!isCollapsed?' is-open':''}"
+  return `<div class="dnode${n.isRoot?' d-root':''}${hasKids?' has-kids':''}${hasKids&&!isCollapsed?' is-open':''}${matchedIds.has(n.id)?' d-match':''}"
     data-id="${n.id}" style="left:${left}px;top:${n._y}px;width:${CARD_W}px;--bc:${n.color}" title="${esc(tip)}">
     ${n.isRoot?'<span class="d-crown">🌳</span>':''}
     <span class="d-fam">${esc(n.fam)}</span>
     <div class="d-name">${esc(n.name)}</div>
     ${n.spouse?`<div class="d-spouse">♥ ${esc(n.spouse)}</div>`:''}
-    ${hasKids?`<div class="d-badge">${n.desc} <span class="d-arrow">▾</span></div>`:''}
+    ${hasKids?`<div class="d-badge"><span class="d-arrow">▾</span></div>`:''}
   </div>`;
 }
 function renderTree(){
@@ -1521,9 +1731,43 @@ canvas.addEventListener('click', e=>{
 
 document.getElementById('treeOpenAll').onclick = ()=>{ collapsedIds.clear(); renderTree(); fitTree(); };
 document.getElementById('treeCloseAll').onclick = ()=>{
+  matchedIds = new Set();
+  const ts = document.getElementById('treeSearch'); if(ts) ts.value='';
   collapsedIds = new Set(treeModel.kids.map(k=>k.id));
   renderTree(); fitTree();
 };
+
+/* --- חיפוש בעץ: מאתר, פותח את המסלול, מדגיש וממקד --- */
+function ancestorsOf(id){  /* 'r-0-3-2' → ['r','r-0','r-0-3'] */
+  const parts = id.split('-');
+  const out = [];
+  for(let i=1;i<parts.length;i++) out.push(parts.slice(0,i).join('-'));
+  return out;
+}
+function eachTreeNode(node, cb){ cb(node); node.kids.forEach(k=>eachTreeNode(k, cb)); }
+document.getElementById('treeSearch').addEventListener('input', ()=>{
+  const q = norm(document.getElementById('treeSearch').value);
+  matchedIds = new Set();
+  if(!q){ renderTree(); return; }
+  const tokens = q.split(' ');
+  const hits = [];
+  eachTreeNode(treeModel, node=>{
+    if(matches((node.full||'') + ' ' + (node.spouse||'') + ' ' + (node.fam||''), tokens)){
+      matchedIds.add(node.id);
+      hits.push(node);
+      ancestorsOf(node.id).forEach(a=>collapsedIds.delete(a));
+    }
+  });
+  renderTree();
+  if(hits.length){
+    /* מיקוד לתוצאה הראשונה */
+    const n = hits[0];
+    tScale = Math.max(tScale, 0.7);
+    tX = viewport.clientWidth/2 - n._x*tScale;
+    tY = viewport.clientHeight/3 - n._y*tScale;
+    applyTree();
+  }
+});
 
 /* --- גרירה + זום (לחיצה נקייה פותחת ענף; רק תזוזה אמיתית גוררת) --- */
 function applyTree(){ canvas.style.transform = `translate(${tX}px,${tY}px) scale(${tScale})`; }
@@ -1683,9 +1927,11 @@ function buildFromRows(rows){
       name: String(r.Name ?? '').trim(),
       surname: String(r.Surname ?? '').trim(),
       date: String(r.Date ?? '').trim(),
+      deathDate: String(r.DeathDate ?? '').trim(),
       spouseRole: String(r.SpouseRole ?? '').trim(),
       spouseName: String(r.SpouseName ?? '').trim(),
       spouseDate: String(r.SpouseDate ?? '').trim(),
+      spouseDeathDate: String(r.SpouseDeathDate ?? '').trim(),
       kids: []
     });
   });
@@ -1704,17 +1950,22 @@ function buildFromRows(rows){
   sortKids(root);
 
   const toModel = node => ({
+    id: node.id,
     n: node.name + (node.surname ? ` (${node.surname})` : ''),
     d: node.date || undefined,
-    s: node.spouseName ? {r: node.spouseRole || 'בן/בת זוג', n: node.spouseName, d: node.spouseDate || undefined} : undefined,
+    dd: node.deathDate || undefined,
+    _raw: node,
+    s: node.spouseName ? {r: node.spouseRole || 'בן/בת זוג', n: node.spouseName, d: node.spouseDate || undefined, dd: node.spouseDeathDate || undefined} : undefined,
     c: node.kids.map(toModel)
   });
 
   return {
     matriarch: {
+      id: root.id, _raw: root,
       n: root.name,
       d: root.date,
-      s: root.spouseName ? {r: root.spouseRole || 'בעלה', n: root.spouseName, d: root.spouseDate || undefined} : undefined
+      dd: root.deathDate || undefined,
+      s: root.spouseName ? {r: root.spouseRole || 'בעלה', n: root.spouseName, d: root.spouseDate || undefined, dd: root.spouseDeathDate || undefined} : undefined
     },
     branches: root.kids.map(toModel)
   };
@@ -1724,7 +1975,7 @@ function showSyncStatus(ok, count){
   const el = document.getElementById('syncPill');
   if(!el) return;
   if(ok){
-    el.textContent = `🔄 מסונכרן עם הגיליון המשפחתי · ${count} שמות`;
+    el.textContent = `🔄 מסונכרן עם הגיליון המשפחתי`;
     el.classList.add('show');
   } else {
     el.classList.remove('show');
@@ -1743,9 +1994,10 @@ async function loadFromSheet(){
     if(!built) return;
     MATRIARCH = built.matriarch;
     BRANCHES = built.branches;
+    liveRows = rows;
+    editMode = true;   /* מאפשר עריכה/מחיקה כשמחוברים לגיליון */
     renderAll();
     showSyncStatus(true, rows.length);
-    liveRows = rows;
     document.getElementById('openAddBtn').classList.remove('hidden');
   }catch(e){
     showSyncStatus(false);
@@ -1779,6 +2031,7 @@ document.querySelectorAll('.seg-btn').forEach(btn=>{
     document.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
     addRelation = btn.dataset.rel;
+    updateNamePreview();
   });
 });
 
@@ -1795,6 +2048,29 @@ const parentSearchEl = document.getElementById('addParentSearch');
 const parentResultsEl = document.getElementById('parentResults');
 const parentChosenEl = document.getElementById('parentChosen');
 
+/* מיהי האם ברשומה? (השמות ברשימה נכתבים ע"ש האם, כמקובל לתפילה)
+   ראש הרשומה אישה ("... בת ...") → היא האם.
+   ראש הרשומה גבר → האם היא אשתו. */
+function motherOf(row){
+  const name = String(row.Name || '').trim();
+  const spouseRole = String(row.SpouseRole || '').trim();
+  const spouseName = String(row.SpouseName || '').trim();
+  if(/\sבת\s/.test(' ' + name + ' ')) return name;
+  if(spouseRole === 'אשתו' && spouseName) return spouseName;
+  if(spouseName && /\sבת\s/.test(' ' + spouseName + ' ')) return spouseName;
+  return name;
+}
+
+function updateNamePreview(){
+  const prev = document.getElementById('namePreview');
+  const first = document.getElementById('addFirstName').value.trim();
+  const mother = document.getElementById('addMotherName').value.trim();
+  if(!first || !mother){ prev.classList.add('hidden'); return; }
+  prev.innerHTML = `השם שיישמר: <b>${esc(first)} ${esc(addRelation)} ${esc(shortName(mother))}</b>` +
+                   `<small>לפי המנהג, השם נכתב על שם האם</small>`;
+  prev.classList.remove('hidden');
+}
+
 function chooseParent(row){
   chosenParent = row;
   parentResultsEl.innerHTML = '';
@@ -1809,10 +2085,20 @@ function chooseParent(row){
     parentChosenEl.classList.add('hidden');
     parentSearchEl.classList.remove('hidden');
     parentSearchEl.value = '';
+    document.getElementById('addMotherName').value = '';
+    updateNamePreview();
     parentSearchEl.focus();
   };
   parentChosenEl.appendChild(clearBtn);
+  /* מילוי אוטומטי של שם האם (ניתן לעריכה ידנית) */
+  document.getElementById('addMotherName').value = motherOf(row);
+  updateNamePreview();
 }
+
+/* עדכון התצוגה המקדימה בכל שינוי */
+['addFirstName','addMotherName'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', updateNamePreview);
+});
 
 parentSearchEl.addEventListener('input', ()=>{
   const q = norm(parentSearchEl.value);
@@ -1841,20 +2127,24 @@ addForm.addEventListener('submit', async e=>{
   if(!firstName){ addMsg.textContent = 'נא למלא שם פרטי'; addMsg.className = 'modal-msg err'; return; }
   if(!chosenParent){ addMsg.textContent = 'נא לבחור הורה מהרשימה'; addMsg.className = 'modal-msg err'; return; }
 
-  const parentFirstName = shortName(chosenParent.Name);
-  const fullName = `${firstName} ${addRelation} ${parentFirstName}`;
+  /* השם נכתב על שם האם (כמנהג לתפילה) — אוטומטי מההורה, וניתן לעריכה ידנית */
+  const motherName = document.getElementById('addMotherName').value.trim() || motherOf(chosenParent);
+  const fullName = `${firstName} ${addRelation} ${shortName(motherName)}`;
   const married = document.getElementById('addMarriedCheck').checked;
   const hasSurname = document.getElementById('addSurnameCheck').checked;
 
   const payload = {
+    action: 'add',
     Name: fullName,
     ParentID: String(chosenParent.ID),
     Order: 0,
     Surname: hasSurname ? document.getElementById('addSurname').value.trim() : '',
     Date: document.getElementById('addDate').value.trim(),
+    DeathDate: document.getElementById('addDeath').value.trim(),
     SpouseRole: married ? (addRelation === 'בן' ? 'אשתו' : 'בעלה') : '',
     SpouseName: married ? document.getElementById('addSpouseName').value.trim() : '',
-    SpouseDate: married ? document.getElementById('addSpouseDate').value.trim() : ''
+    SpouseDate: married ? document.getElementById('addSpouseDate').value.trim() : '',
+    SpouseDeathDate: married ? document.getElementById('addSpouseDeath').value.trim() : ''
   };
 
   addSubmit.disabled = true;
@@ -1873,6 +2163,7 @@ addForm.addEventListener('submit', async e=>{
       setTimeout(async ()=>{
         addForm.reset();
         chosenParent = null;
+        document.getElementById('namePreview').classList.add('hidden');
         parentChosenEl.classList.add('hidden');
         parentSearchEl.classList.remove('hidden');
         document.getElementById('marriageFields').classList.add('hidden');
@@ -1892,6 +2183,139 @@ addForm.addEventListener('submit', async e=>{
   }finally{
     addSubmit.disabled = false;
     addSubmit.innerHTML = '<span>הוספת השם</span>';
+  }
+});
+
+/* ---------- עריכה / מחיקה של שם קיים (דורש קוד משפחתי) ---------- */
+const editBackdrop = document.getElementById('editBackdrop');
+const editForm = document.getElementById('editForm');
+const editMsg = document.getElementById('editMsg');
+const editSubmit = document.getElementById('editSubmit');
+const editDelete = document.getElementById('editDelete');
+let editingId = null;
+
+const REMEMBER_KEY = 'martonFamilyCode';
+function rememberedCode(){ try{ return sessionStorage.getItem(REMEMBER_KEY) || ''; }catch(e){ return ''; } }
+function rememberCode(c){ try{ sessionStorage.setItem(REMEMBER_KEY, c); }catch(e){} }
+
+function openEditModal(id){
+  if(!liveRows) return;
+  const row = liveRows.find(r=>String(r.ID) === String(id));
+  if(!row) return;
+  editingId = String(id);
+  document.getElementById('edName').value        = String(row.Name ?? '');
+  document.getElementById('edSurname').value     = String(row.Surname ?? '');
+  document.getElementById('edDate').value        = String(row.Date ?? '');
+  document.getElementById('edDeath').value       = String(row.DeathDate ?? '');
+  document.getElementById('edSpouseName').value  = String(row.SpouseName ?? '');
+  document.getElementById('edSpouseDate').value  = String(row.SpouseDate ?? '');
+  document.getElementById('edSpouseDeath').value = String(row.SpouseDeathDate ?? '');
+  document.getElementById('edCode').value        = rememberedCode();
+  editMsg.textContent = ''; editMsg.className = 'modal-msg';
+  editBackdrop.classList.add('show');
+  document.getElementById('edName').focus();
+}
+function closeEditModal(){ editBackdrop.classList.remove('show'); editingId = null; }
+
+document.getElementById('editClose').addEventListener('click', closeEditModal);
+editBackdrop.addEventListener('click', e=>{ if(e.target === editBackdrop) closeEditModal(); });
+document.addEventListener('keydown', e=>{ if(e.key === 'Escape' && editBackdrop.classList.contains('show')) closeEditModal(); });
+
+/* לחיצה על כפתור העיפרון ליד שם */
+branchesEl.addEventListener('click', e=>{
+  const btn = e.target.closest('.edit-dot');
+  if(!btn) return;
+  e.preventDefault();
+  e.stopPropagation();
+  openEditModal(btn.dataset.editid);
+});
+
+async function sendSheetAction(payload){
+  const res = await fetch(SHEET_JSON_URL, {
+    method: 'POST',
+    headers: {'Content-Type': 'text/plain;charset=utf-8'},
+    body: JSON.stringify(payload)
+  });
+  return res.json();
+}
+
+editForm.addEventListener('submit', async e=>{
+  e.preventDefault();
+  editMsg.textContent = ''; editMsg.className = 'modal-msg';
+  const code = document.getElementById('edCode').value.trim();
+  const name = document.getElementById('edName').value.trim();
+  if(!name){ editMsg.textContent = 'נא למלא שם'; editMsg.className = 'modal-msg err'; return; }
+  if(!code){ editMsg.textContent = 'נא להזין קוד משפחתי'; editMsg.className = 'modal-msg err'; return; }
+
+  const spouseName = document.getElementById('edSpouseName').value.trim();
+  const payload = {
+    action: 'edit',
+    code,
+    ID: editingId,
+    Name: name,
+    Surname: document.getElementById('edSurname').value.trim(),
+    Date: document.getElementById('edDate').value.trim(),
+    DeathDate: document.getElementById('edDeath').value.trim(),
+    SpouseName: spouseName,
+    SpouseDate: document.getElementById('edSpouseDate').value.trim(),
+    SpouseDeathDate: document.getElementById('edSpouseDeath').value.trim()
+  };
+  /* אם יש בן/בת זוג ואין תפקיד שמור — נגזור לפי "בן"/"בת" בשם */
+  if(spouseName){
+    const existing = liveRows.find(r=>String(r.ID)===String(editingId));
+    payload.SpouseRole = String(existing?.SpouseRole || '').trim() ||
+      ((' '+name+' ').includes(' בן ') ? 'אשתו' : 'בעלה');
+  } else {
+    payload.SpouseRole = '';
+  }
+
+  editSubmit.disabled = true;
+  editSubmit.innerHTML = '<span>שומר...</span>';
+  try{
+    const result = await sendSheetAction(payload);
+    if(result.ok){
+      rememberCode(code);
+      editMsg.textContent = 'השינויים נשמרו!';
+      editMsg.className = 'modal-msg ok';
+      setTimeout(async ()=>{ closeEditModal(); await loadFromSheet(); }, 900);
+    } else {
+      editMsg.textContent = result.error || 'שגיאה בשמירה';
+      editMsg.className = 'modal-msg err';
+    }
+  }catch(err){
+    editMsg.textContent = 'שגיאת רשת — נסה שוב';
+    editMsg.className = 'modal-msg err';
+  }finally{
+    editSubmit.disabled = false;
+    editSubmit.innerHTML = '<span>שמירת השינויים</span>';
+  }
+});
+
+editDelete.addEventListener('click', async ()=>{
+  const code = document.getElementById('edCode').value.trim();
+  if(!code){ editMsg.textContent = 'נא להזין קוד משפחתי'; editMsg.className = 'modal-msg err'; return; }
+  const nm = document.getElementById('edName').value.trim();
+  if(!confirm(`למחוק את "${nm}" מהרשימה?\nלא ניתן לשחזר מהאתר.`)) return;
+
+  editDelete.disabled = true;
+  editDelete.textContent = 'מוחק...';
+  try{
+    const result = await sendSheetAction({action:'delete', code, ID: editingId});
+    if(result.ok){
+      rememberCode(code);
+      editMsg.textContent = 'השם נמחק';
+      editMsg.className = 'modal-msg ok';
+      setTimeout(async ()=>{ closeEditModal(); await loadFromSheet(); }, 900);
+    } else {
+      editMsg.textContent = result.error || 'שגיאה במחיקה';
+      editMsg.className = 'modal-msg err';
+    }
+  }catch(err){
+    editMsg.textContent = 'שגיאת רשת — נסה שוב';
+    editMsg.className = 'modal-msg err';
+  }finally{
+    editDelete.disabled = false;
+    editDelete.textContent = '🗑️ מחיקת שם זה';
   }
 });
 
