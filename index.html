@@ -207,6 +207,7 @@ body{
 .matriarch .couple{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
 .matriarch .head{flex:1 1 0;min-width:150px;max-width:300px}
 .matriarch .couple-heart{flex:0 0 auto;color:var(--accent);font-size:22px;padding:0 2px}
+.matriarch .dt-death{color:#7d6a4a;font-weight:600;font-size:12.5px;margin-top:2px}
 @media (max-width:540px){
   .matriarch .couple{flex-direction:column;gap:12px}
   .matriarch .head{max-width:100%}
@@ -1264,7 +1265,7 @@ let BRANCHES = SEED_BRANCHES;
 let total = 0;
 
 /* כתובת ה-Web App של הגיליון המשותף (Apps Script). כשיוגדר קישור אמיתי, הרשימה תתעדכן אוטומטית לכולם. */
-const SHEET_JSON_URL = 'https://script.google.com/macros/s/AKfycbyE_5_8c0g8-dFoa0sdsuoEGBKto-YlUqnXlk1cNN66ZCOZKxE9LtmVF2RSN6eEAdBZ/exec';
+const SHEET_JSON_URL = 'https://script.google.com/macros/s/AKfycbwFWv3M5dVCj49ZDulaYNJ1rNAN7Y0Xln635x5zAjn1oR0f_LZdeARpPQRh4oPIEhUV/exec';
 
 /* ---------- helpers ---------- */
 const esc = s => (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -1322,13 +1323,18 @@ function unitHTML(p, fam){
 const branchesEl = document.getElementById('branches');
 function buildNamesTab(){
   const m = MATRIARCH;
+  const headHTML = (name, date, death) =>
+    `<div class="head"><div class="nm">${esc(name)}</div>` +
+    (date?`<div class="dt">${esc(date)}</div>`:'') +
+    (death?`<div class="dt-death" title="יום פטירה">🕯️ ${esc(death)}</div>`:'') +
+    `</div>`;
   document.getElementById('matriarchBox').innerHTML = m.s
     ? `<div class="couple">
-         <div class="head"><div class="nm">${esc(m.n)}</div><div class="dt">${esc(m.d)}</div></div>
+         ${headHTML(m.n, m.d, m.dd)}
          <div class="couple-heart">♥</div>
-         <div class="head"><div class="nm">${esc(m.s.n)}</div>${m.s.d?`<div class="dt">${esc(m.s.d)}</div>`:''}</div>
+         ${headHTML(m.s.n, m.s.d, m.s.dd)}
        </div>`
-    : `<div class="nm">${esc(m.n)}</div><div class="dt">${esc(m.d)}</div>`;
+    : `<div class="nm">${esc(m.n)}</div>${m.d?`<div class="dt">${esc(m.d)}</div>`:''}${m.dd?`<div class="dt-death">🕯️ ${esc(m.dd)}</div>`:''}`;
 
   branchesEl.innerHTML = BRANCHES.map((b,i) => {
     const bFam = famOf(b.n, FAMILY_ROOT);
