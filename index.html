@@ -171,6 +171,13 @@ body{
   margin:-14px 0 20px;letter-spacing:.2px;
 }
 .sync-pill.show{display:block}
+.sync-pill.sync-err{color:#c0392b}
+.sync-retry{
+  background:none;border:1px solid currentColor;border-radius:8px;
+  color:inherit;font:inherit;font-size:11px;font-weight:700;
+  padding:1px 8px;cursor:pointer;margin-inline-start:4px;
+}
+.sync-retry:hover{background:rgba(192,57,43,.1)}
 .search{
   display:block;width:100%;max-width:430px;margin:0 auto 18px;
   padding:13px 18px;font:inherit;font-size:16px;
@@ -203,15 +210,11 @@ body{
 }
 .matriarch .nm{font-family:'Frank Ruhl Libre',serif;font-size:21px;line-height:1.25}
 .matriarch .dt{color:var(--accent);font-weight:700;font-size:14px;margin-top:3px}
-/* שני ראשי המשפחה זה לצד זה, באותו גודל */
-.matriarch .couple{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
-.matriarch .head{flex:1 1 0;min-width:150px;max-width:300px}
-.matriarch .couple-heart{flex:0 0 auto;color:var(--accent);font-size:22px;padding:0 2px}
+/* שני ראשי המשפחה תמיד זה לצד זה, באותו גודל — גם בנייד */
+.matriarch .couple{display:flex;align-items:flex-start;justify-content:center;gap:8px;flex-wrap:nowrap}
+.matriarch .head{flex:1 1 0;min-width:0;max-width:300px}
+.matriarch .couple-heart{flex:0 0 auto;color:var(--accent);font-size:22px;padding:0 2px;line-height:1.3;align-self:center}
 .matriarch .dt-death{color:#7d6a4a;font-weight:600;font-size:12.5px;margin-top:2px}
-@media (max-width:540px){
-  .matriarch .couple{flex-direction:column;gap:12px}
-  .matriarch .head{max-width:100%}
-}
 
 /* ---- toolbar ---- */
 .toolbar{
@@ -469,10 +472,11 @@ details.branch.hidden{display:none}
   .search{padding:10px 14px;font-size:15px;margin-bottom:10px}
   .print-btn{padding:11px 18px;font-size:15px}
   .matriarch{margin:14px 0 4px;padding:12px 12px 10px}
-  .matriarch .nm{font-size:16.5px;line-height:1.2}
-  .matriarch .dt{font-size:13px;margin-top:1px}
-  .matriarch .couple{gap:6px}
-  .matriarch .couple-heart{font-size:17px}
+  .matriarch .nm{font-size:14.5px;line-height:1.2}
+  .matriarch .dt{font-size:11.5px;margin-top:1px}
+  .matriarch .dt-death{font-size:11px}
+  .matriarch .couple{gap:4px}
+  .matriarch .couple-heart{font-size:15px;padding:0}
   /* בנייד: הכותרת "ענפי המשפחה" מוסתרת כדי שהכפתורים ייכנסו בשורה אחת */
   .toolbar{margin:12px 2px 6px;gap:7px}
   .toolbar .ttl{display:none}
@@ -512,6 +516,37 @@ details.branch.hidden{display:none}
   letter-spacing:-1px;line-height:1.1;
   text-shadow:2px 2px 0 rgba(255,217,61,.35);
 }
+/* ---- בורר חודש ---- */
+.month-nav{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:2px}
+.month-arrow{
+  flex:0 0 auto;width:38px;height:38px;border-radius:50%;
+  border:1.5px solid var(--line);background:var(--card);color:var(--ink);
+  font-size:26px;line-height:1;cursor:pointer;font-family:inherit;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .2s,border-color .2s,color .2s;
+}
+.month-arrow:hover{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.month-arrow:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.month-select{
+  font-family:'Assistant',sans-serif;font-size:40px;font-weight:900;
+  color:var(--ink);background:transparent;border:none;cursor:pointer;
+  text-align:center;text-align-last:center;letter-spacing:-1px;
+  padding:2px 6px;border-radius:12px;max-width:min(78vw,340px);
+  text-shadow:2px 2px 0 rgba(255,217,61,.35);
+  appearance:none;-webkit-appearance:none;
+}
+.month-select:hover{background:var(--accent-soft)}
+.month-select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.month-select option{
+  font-size:16px;font-weight:700;color:var(--ink);background:var(--card);
+  text-shadow:none;letter-spacing:0;
+}
+.month-today{
+  margin-top:8px;background:none;border:none;cursor:pointer;
+  font:inherit;font-size:12.5px;font-weight:700;color:var(--accent);
+  padding:3px 10px;border-radius:8px;
+}
+.month-today:hover{background:var(--accent-soft)}
 .ev-hebdate{font-size:14px;color:var(--muted);font-weight:700;margin-top:10px;letter-spacing:.5px}
 .today-card{
   background:var(--card);border:3px solid #FFD93D;border-radius:28px;
@@ -521,6 +556,7 @@ details.branch.hidden{display:none}
 }
 .today-label{font-size:16px;font-weight:800;color:#ff9f43;display:block;margin-bottom:8px}
 .today-content{font-size:25px;font-weight:800;color:var(--ink)}
+.today-age{font-size:15px;font-weight:700;color:var(--accent);white-space:nowrap}
 .event-grid{
   display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
   gap:15px;padding-bottom:20px;
@@ -549,18 +585,43 @@ details.branch.hidden{display:none}
   margin-bottom:7px;
 }
 .e-age{font-size:12px;color:var(--muted);margin-top:6px;font-weight:600}
-.ev-empty{text-align:center;color:var(--muted);font-size:18px;padding:50px 10px}
+.ev-empty{text-align:center;color:var(--muted);font-size:15.5px;padding:24px 10px}
+
+/* ---- שלוש החלוניות: ימי הולדת / ימי נישואין / נשמות ---- */
+.ev-panel{margin-bottom:34px}
+.ev-panel + .ev-panel{padding-top:28px;border-top:1px solid var(--line)}
+.ev-panel-head{
+  text-align:center;font-family:'Frank Ruhl Libre',serif;font-size:22px;color:var(--ink);
+  margin-bottom:16px;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;
+}
+.ev-panel-icon{font-size:20px}
+.ev-panel-sub{
+  font-family:'Assistant',sans-serif;font-size:12px;color:var(--muted);font-weight:600;
+  letter-spacing:1px;background:var(--pill);padding:2px 10px;border-radius:10px;
+}
+
+/* ---- ימי נישואין ---- */
+.anniv-list{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;
+  max-width:760px;margin:0 auto;
+}
+.anniv-card{
+  background:var(--card);border:1px solid var(--line);border-radius:14px;
+  border-inline-start:3px solid #c98bb0;
+  padding:12px 15px;display:flex;align-items:center;gap:10px;
+}
+.anniv-card.is-today{border-inline-start-color:var(--accent);background:var(--accent-soft)}
+.anniv-ring{font-size:20px;flex-shrink:0}
+.anniv-info{min-width:0}
+.anniv-names{font-weight:700;font-size:14.5px;color:var(--ink);line-height:1.3}
+.anniv-date{font-size:12.5px;color:var(--muted);margin-top:2px}
+.anniv-years{font-size:11.5px;color:var(--accent);font-weight:700;margin-top:2px}
+.anniv-today-tag{font-size:11px;font-weight:800;color:var(--accent)}
 
 /* ---- נשמות החודש (יארצייטים) ---- */
-.memorial-section{margin-top:38px;padding-top:26px;border-top:1px solid var(--line)}
-.memorial-head{
-  text-align:center;font-family:'Frank Ruhl Libre',serif;font-size:23px;color:var(--ink);
-  margin-bottom:18px;
-}
-.memorial-sub{display:block;font-family:'Assistant',sans-serif;font-size:13px;color:var(--muted);font-weight:400;letter-spacing:1px;margin-top:2px}
 .memorial-list{
   display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;
-  max-width:720px;margin:0 auto;
+  max-width:760px;margin:0 auto;
 }
 .memorial-card{
   background:var(--card);border:1px solid var(--line);border-radius:14px;
@@ -759,8 +820,13 @@ details.branch.hidden{display:none}
   <div class="panel" id="panel-events">
     <div class="wrap">
       <div class="ev-head">
-        <span class="ev-top">ימי הולדת במשפחה 🎈</span>
-        <span class="ev-month" id="evMonth">—</span>
+        <span class="ev-top">אירועי המשפחה 🎈</span>
+        <div class="month-nav">
+          <button class="month-arrow" id="monthPrev" aria-label="חודש קודם">›</button>
+          <select class="month-select" id="monthSelect" aria-label="בחירת חודש"></select>
+          <button class="month-arrow" id="monthNext" aria-label="חודש הבא">‹</button>
+        </div>
+        <button class="month-today hidden" id="monthToday">↩ חזרה לחודש הנוכחי</button>
         <div class="ev-hebdate" id="evHebDate"></div>
       </div>
 
@@ -769,13 +835,26 @@ details.branch.hidden{display:none}
         <div class="today-content" id="todayContent"></div>
       </div>
 
-      <div class="event-grid" id="eventGrid"></div>
-      <div class="ev-empty hidden" id="evEmpty">אין ימי הולדת החודש 🎈</div>
+      <!-- חלונית 1: ימי הולדת -->
+      <section class="ev-panel" id="birthdayPanel">
+        <div class="ev-panel-head"><span class="ev-panel-icon">🎂</span> ימי הולדת <span class="ev-panel-sub">בחודש זה</span></div>
+        <div class="event-grid" id="eventGrid"></div>
+        <div class="ev-empty hidden" id="evEmpty">אין ימי הולדת החודש 🎈</div>
+      </section>
 
-      <div class="memorial-section hidden" id="memorialSection">
-        <div class="memorial-head">🕯️ נשמות החודש <span class="memorial-sub">לזכר ולעילוי נשמתם</span></div>
+      <!-- חלונית 2: ימי נישואין -->
+      <section class="ev-panel" id="anniversaryPanel">
+        <div class="ev-panel-head"><span class="ev-panel-icon">💍</span> ימי נישואין <span class="ev-panel-sub">בחודש זה</span></div>
+        <div class="anniv-list" id="annivList"></div>
+        <div class="ev-empty hidden" id="annivEmpty">אין ימי נישואין החודש 💍</div>
+      </section>
+
+      <!-- חלונית 3: יארצייטים -->
+      <section class="ev-panel memorial-section" id="memorialSection">
+        <div class="ev-panel-head"><span class="ev-panel-icon">🕯️</span> נשמות החודש <span class="ev-panel-sub">לזכר ולעילוי נשמתם</span></div>
         <div class="memorial-list" id="memorialList"></div>
-      </div>
+        <div class="ev-empty hidden" id="memEmpty">אין יארצייטים החודש 🕯️</div>
+      </section>
     </div>
   </div>
 
@@ -855,6 +934,10 @@ details.branch.hidden{display:none}
           <label class="fld"><span>תאריך לידה</span><input type="text" id="addSpouseDate" placeholder="ה תשרי תשפ&quot;ה"></label>
           <label class="fld"><span>🕯️ יום פטירה</span><input type="text" id="addSpouseDeath" placeholder="ריק אם בחיים"></label>
         </div>
+        <label class="fld">
+          <span>💍 יום הנישואין</span>
+          <input type="text" id="addAnniversary" placeholder="לדוגמה: טו אלול תשפ&quot;א">
+        </label>
       </div>
 
       <label class="fld-check">
@@ -904,6 +987,10 @@ details.branch.hidden{display:none}
         <label class="fld"><span>תאריך לידה</span><input type="text" id="edSpouseDate"></label>
         <label class="fld"><span>🕯️ יום פטירה</span><input type="text" id="edSpouseDeath"></label>
       </div>
+      <label class="fld">
+        <span>💍 יום הנישואין</span>
+        <input type="text" id="edAnniversary" placeholder="לדוגמה: טו אלול תשפ&quot;א">
+      </label>
 
       <label class="fld">
         <span>קוד משפחתי *</span>
@@ -1449,6 +1536,12 @@ function flatRows(p, out, fam){
   if(p.s) out.push({n:p.s.n, d:p.s.d, dd:p.s.dd, rel:p.s.r, fam:f});
   (p.c||[]).forEach(k=>flatRows(k,out,f));
 }
+/* אוסף זוגות עם תאריך נישואין (לחלונית ימי הנישואין) */
+function flatCouples(p, out, fam){
+  const f = famOf(p.n, fam);
+  if(p.s && p.an) out.push({n:p.n, sn:p.s.n, an:p.an, fam:f});
+  (p.c||[]).forEach(k=>flatCouples(k, out, f));
+}
 function buildPrintSheet(){
   let h = `<div class="p-stamp">עודכן: ${hebDateNow()}</div>
   <div class="p-head"><h1 class="p-title">שמות של משפחתינו היקרים</h1><div class="p-sub">משפחת מרטון · ב"ה</div></div>
@@ -1532,6 +1625,43 @@ function inCurrentMonth(m, cur){
   if(cur === 'אדר ב') return m === 'אדר ב' || m === 'אדר';
   return m === cur;
 }
+/* ---------- בורר החודש ---------- */
+let viewMonth = null;   /* מפתח החודש המוצג; null = החודש הנוכחי */
+
+/* שנה עברית מעוברת? (7·שנה+1) mod 19 < 7 */
+function isHebLeap(y){ return ((7 * y + 1) % 19) < 7; }
+
+/* רשימת חודשי השנה לפי הסדר, עם טיפול באדר א'/ב' בשנה מעוברת */
+function hebMonthsOf(year){
+  const base = ['תשרי','חשון','כסלו','טבת','שבט'];
+  const adar = isHebLeap(year) ? ['אדר א','אדר ב'] : ['אדר'];
+  return base.concat(adar, ['ניסן','אייר','סיון','תמוז','אב','אלול']);
+}
+
+function buildMonthSelector(curYear, curMonth){
+  const sel = document.getElementById('monthSelect');
+  if(!sel) return;
+  const months = hebMonthsOf(curYear);
+  /* בונים מחדש רק אם הרשימה השתנתה — כדי לא לאבד פוקוס */
+  const wanted = months.join('|');
+  if(sel.dataset.built !== wanted){
+    sel.innerHTML = months.map(m=>`<option value="${esc(m)}">חודש ${esc(m)}</option>`).join('');
+    sel.dataset.built = wanted;
+  }
+  if(!months.includes(viewMonth)) viewMonth = months.includes(curMonth) ? curMonth : months[0];
+  sel.value = viewMonth;
+}
+
+function stepMonth(delta){
+  const parts = new Intl.DateTimeFormat('he-u-ca-hebrew',{year:'numeric'}).formatToParts(new Date());
+  const y = parseInt(parts.find(p=>p.type==='year').value);
+  const months = hebMonthsOf(y);
+  let i = months.indexOf(viewMonth);
+  if(i < 0) i = 0;
+  viewMonth = months[(i + delta + months.length) % months.length];
+  buildEvents();
+}
+
 function buildEvents(){
   let curDay, curMonthName, curMonth, curYear;
   try{
@@ -1541,44 +1671,63 @@ function buildEvents(){
     curMonth = monthKey(curMonthName);
     curYear = parseInt(parts.find(p=>p.type==='year').value);
   }catch(e){
-    document.getElementById('evMonth').textContent = 'החודש';
     document.getElementById('evEmpty').classList.remove('hidden');
     return;
   }
-  document.getElementById('evMonth').textContent = 'חודש ' + curMonthName;
+
+  /* החודש המוצג — ברירת מחדל החודש הנוכחי, וניתן לבחירה */
+  if(!viewMonth) viewMonth = curMonth;
+  const isCurrentMonthView = (viewMonth === curMonth);
+  buildMonthSelector(curYear, curMonth);
+  document.getElementById('monthToday').classList.toggle('hidden', isCurrentMonthView);
   document.getElementById('evHebDate').textContent = 'היום: ' + hebDateNow();
 
-  const all = [{n:MATRIARCH.n, d:MATRIARCH.d, fam:FAMILY_ROOT}];
-  if(MATRIARCH.s) all.push({n:MATRIARCH.s.n, d:MATRIARCH.s.d, rel:MATRIARCH.s.r, fam:FAMILY_ROOT});
+  /* גיל/שנים — רק כשיש שנה בתאריך */
+  const yearsSince = h => (h && h.year) ? (curYear - h.year) : null;
+  const ageText = (e) => {
+    const a = yearsSince(e.h);
+    if(a === null || a <= 0 || a >= 130) return '';
+    const male = (' '+e.n+' ').includes(' בן ');
+    return `${male?'בן':'בת'} ${a}`;
+  };
+
+  const all = [{n:MATRIARCH.n, d:MATRIARCH.d, dd:MATRIARCH.dd, fam:FAMILY_ROOT}];
+  if(MATRIARCH.s) all.push({n:MATRIARCH.s.n, d:MATRIARCH.s.d, dd:MATRIARCH.s.dd, rel:MATRIARCH.s.r, fam:FAMILY_ROOT});
   BRANCHES.forEach(b=>flatRows(b, all, FAMILY_ROOT));
 
   const emojis = ['🍰','🎂','🎈','🎁','🥳','🧁','🎊','✨','🍭','🌈'];
   const events = [];
   all.forEach(p=>{
     const h = parseHebDate(p.d);
-    if(h && inCurrentMonth(h.month, curMonth)) events.push({...p, h});
+    if(h && inCurrentMonth(h.month, viewMonth)) events.push({...p, h});
   });
   events.sort((a,b)=>a.h.day - b.h.day);
 
-  const todayNames = events.filter(e=>e.h.day === curDay)
-    .map(e => esc(e.n) + (e.n.includes('(') ? '' : ` <small style="font-weight:600;color:#ff9f43">(${esc(e.fam)})</small>`));
-  if(todayNames.length){
-    document.getElementById('todayContent').innerHTML = todayNames.join('<br>');
-    document.getElementById('todayCard').classList.remove('hidden');
+  /* כרטיס "חוגגים היום" — רק בתצוגת החודש הנוכחי, ועם הגיל */
+  const todayCard = document.getElementById('todayCard');
+  const todayList = isCurrentMonthView ? events.filter(e=>e.h.day === curDay) : [];
+  if(todayList.length){
+    document.getElementById('todayContent').innerHTML = todayList.map(e=>{
+      const fam = e.n.includes('(') ? '' : ` <small style="font-weight:600;color:#ff9f43">(${esc(e.fam)})</small>`;
+      const a = ageText(e);
+      return esc(e.n) + fam + (a ? ` <small class="today-age">${esc(a)} 🎉</small>` : '');
+    }).join('<br>');
+    todayCard.classList.remove('hidden');
+  } else {
+    todayCard.classList.add('hidden');
   }
 
   const grid = document.getElementById('eventGrid');
+  const evEmpty = document.getElementById('evEmpty');
   if(!events.length){
-    document.getElementById('evEmpty').classList.remove('hidden');
+    grid.innerHTML = '';
+    evEmpty.classList.remove('hidden');
   } else {
+    evEmpty.classList.add('hidden');
     grid.innerHTML = events.map((e,i)=>{
-      const isToday = e.h.day === curDay;
-      const male = (' '+e.n+' ').includes(' בן ');
-      let age = '';
-      if(e.h.year){
-        const a = curYear - e.h.year;
-        if(a > 0 && a < 130) age = `<div class="e-age">${male?'בן':'בת'} ${a} 🎉</div>`;
-      }
+      const isToday = isCurrentMonthView && e.h.day === curDay;
+      const a = ageText(e);
+      const age = a ? `<div class="e-age">${esc(a)} 🎉</div>` : '';
       const dateTxt = e.d.trim().split(/\s+/).slice(0,-1).join(' ') || e.d;
       return `<div class="event-card${isToday?' is-today':''}">
         <div class="event-icon">${isToday?'🥳':emojis[i % emojis.length]}</div>
@@ -1590,32 +1739,81 @@ function buildEvents(){
     }).join('');
   }
 
-  /* --- נשמות החודש (יארצייטים) --- */
+  /* --- חלונית ימי נישואין --- */
+  const couples = [];
+  if(MATRIARCH.s && MATRIARCH.an) couples.push({n:MATRIARCH.n, sn:MATRIARCH.s.n, an:MATRIARCH.an, fam:FAMILY_ROOT});
+  BRANCHES.forEach(b=>flatCouples(b, couples, FAMILY_ROOT));
+
+  const annivs = [];
+  couples.forEach(c=>{
+    const h = parseHebDate(c.an);
+    if(h && inCurrentMonth(h.month, viewMonth)) annivs.push({...c, h});
+  });
+  annivs.sort((a,b)=>a.h.day - b.h.day);
+  const annivList = document.getElementById('annivList');
+  const annivEmpty = document.getElementById('annivEmpty');
+  if(annivs.length){
+    annivList.innerHTML = annivs.map(e=>{
+      const isToday = isCurrentMonthView && e.h.day === curDay;
+      let years = '';
+      if(e.h.year){
+        const y = curYear - e.h.year;
+        if(y > 0 && y < 130) years = `<div class="anniv-years">${y} שנות נישואין 🎉</div>`;
+      }
+      const dateTxt = e.h.year ? (e.an.trim().split(/\s+/).slice(0,-1).join(' ') || e.an) : e.an;
+      return `<div class="anniv-card${isToday?' is-today':''}">
+        <span class="anniv-ring">${isToday?'🎊':'💍'}</span>
+        <div class="anniv-info">
+          <div class="anniv-names">${esc(shortName(e.n))} ♥ ${esc(shortName(e.sn))}</div>
+          <div class="anniv-date">${esc(dateTxt)}${isToday?' · <span class="anniv-today-tag">היום</span>':''}</div>
+          ${years}
+        </div>
+      </div>`;
+    }).join('');
+    annivEmpty.classList.add('hidden');
+  } else {
+    annivList.innerHTML = '';
+    annivEmpty.classList.remove('hidden');
+  }
+
+  /* --- חלונית נשמות החודש (יארצייטים) --- */
   const yahr = [];
   all.forEach(p=>{
     const h = parseHebDate(p.dd);
-    if(h && inCurrentMonth(h.month, curMonth)) yahr.push({...p, h});
+    if(h && inCurrentMonth(h.month, viewMonth)) yahr.push({...p, h});
   });
   yahr.sort((a,b)=>a.h.day - b.h.day);
-  const memSection = document.getElementById('memorialSection');
   const memList = document.getElementById('memorialList');
+  const memEmpty = document.getElementById('memEmpty');
   if(yahr.length){
     memList.innerHTML = yahr.map(e=>{
-      const isToday = e.h.day === curDay;
-      const dateTxt = e.dd.trim();
+      const isToday = isCurrentMonthView && e.h.day === curDay;
       return `<div class="memorial-card${isToday?' is-today':''}">
         <span class="memorial-flame">🕯️</span>
         <div class="memorial-info">
           <div class="memorial-name">${esc(e.n)}</div>
-          <div class="memorial-date">${esc(dateTxt)}${isToday?' · <span class="memorial-today-tag">היום</span>':''}</div>
+          <div class="memorial-date">${esc(e.dd.trim())}${isToday?' · <span class="memorial-today-tag">היום</span>':''}</div>
         </div>
       </div>`;
     }).join('');
-    memSection.classList.remove('hidden');
+    memEmpty.classList.add('hidden');
   } else {
-    memSection.classList.add('hidden');
+    memList.innerHTML = '';
+    memEmpty.classList.remove('hidden');
   }
 }
+
+/* חיווט בורר החודש (החיצים הפוכים כי הממשק RTL) */
+document.getElementById('monthPrev').addEventListener('click', ()=>stepMonth(-1));
+document.getElementById('monthNext').addEventListener('click', ()=>stepMonth(1));
+document.getElementById('monthSelect').addEventListener('change', e=>{
+  viewMonth = e.target.value;
+  buildEvents();
+});
+document.getElementById('monthToday').addEventListener('click', ()=>{
+  viewMonth = null;   /* חוזר לחודש הנוכחי */
+  buildEvents();
+});
 
 /* ---------- עץ המשפחה: דיאגרמה חזותית ---------- */
 const BRANCH_COLORS = ['#c0392b','#d68910','#1e8449','#2471a3','#8e44ad','#148f77','#d35400','#5d6d7e','#a93226','#7d3c98'];
@@ -1938,6 +2136,7 @@ function buildFromRows(rows){
       spouseName: String(r.SpouseName ?? '').trim(),
       spouseDate: String(r.SpouseDate ?? '').trim(),
       spouseDeathDate: String(r.SpouseDeathDate ?? '').trim(),
+      anniversaryDate: String(r.AnniversaryDate ?? '').trim(),
       kids: []
     });
   });
@@ -1960,6 +2159,7 @@ function buildFromRows(rows){
     n: node.name + (node.surname ? ` (${node.surname})` : ''),
     d: node.date || undefined,
     dd: node.deathDate || undefined,
+    an: node.anniversaryDate || undefined,
     _raw: node,
     s: node.spouseName ? {r: node.spouseRole || 'בן/בת זוג', n: node.spouseName, d: node.spouseDate || undefined, dd: node.spouseDeathDate || undefined} : undefined,
     c: node.kids.map(toModel)
@@ -1971,33 +2171,64 @@ function buildFromRows(rows){
       n: root.name,
       d: root.date,
       dd: root.deathDate || undefined,
+      an: root.anniversaryDate || undefined,
       s: root.spouseName ? {r: root.spouseRole || 'בעלה', n: root.spouseName, d: root.spouseDate || undefined, dd: root.spouseDeathDate || undefined} : undefined
     },
     branches: root.kids.map(toModel)
   };
 }
 
+function showSyncLoading(){
+  const el = document.getElementById('syncPill');
+  if(!el) return;
+  el.textContent = '⏳ מתעדכן מהגיליון המשפחתי...';
+  el.className = 'sync-pill show';
+}
 function showSyncStatus(ok, count){
   const el = document.getElementById('syncPill');
   if(!el) return;
   if(ok){
-    el.textContent = `🔄 מסונכרן עם הגיליון המשפחתי`;
-    el.classList.add('show');
+    el.textContent = '🔄 מסונכרן עם הגיליון המשפחתי';
+    el.className = 'sync-pill show';
   } else {
-    el.classList.remove('show');
+    /* כשל אמיתי — מציגים במפורש ומאפשרים ניסיון חוזר, במקום להיעלם בשקט */
+    el.innerHTML = '⚠️ לא הצלחנו להתחבר לגיליון — מוצגת הרשימה השמורה · <button type="button" class="sync-retry" id="syncRetry">נסה שוב</button>';
+    el.className = 'sync-pill show sync-err';
+    const btn = document.getElementById('syncRetry');
+    if(btn) btn.addEventListener('click', ()=>loadFromSheet());
   }
 }
 
 let liveRows = null;
 
+/* הסקריפט של גוגל איטי (2-3 שניות) ולעיתים נופל בהתעוררות קרה —
+   לכן מנסים עד 3 פעמים לפני שמוותרים. */
+async function fetchSheetRows(attempt = 1){
+  const MAX = 3;
+  try{
+    /* cache-buster: מוודא שאף שכבת מטמון (דפדפן/רשת) לא מחזירה נתונים ישנים */
+    const url = SHEET_JSON_URL + (SHEET_JSON_URL.includes('?') ? '&' : '?') + 'nc=' + Date.now();
+    const res = await fetch(url, {redirect:'follow', cache:'no-store'});
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const rows = await res.json();
+    if(!Array.isArray(rows) || !rows.length) throw new Error('empty');
+    return rows;
+  }catch(e){
+    if(attempt < MAX){
+      await new Promise(r=>setTimeout(r, 900 * attempt));
+      return fetchSheetRows(attempt + 1);
+    }
+    throw e;
+  }
+}
+
 async function loadFromSheet(){
   if(!isSheetConfigured(SHEET_JSON_URL)) return;
+  showSyncLoading();
   try{
-    const res = await fetch(SHEET_JSON_URL, {redirect:'follow'});
-    const rows = await res.json();
-    if(!Array.isArray(rows) || !rows.length) return;
+    const rows = await fetchSheetRows();
     const built = buildFromRows(rows);
-    if(!built) return;
+    if(!built) throw new Error('bad structure');
     MATRIARCH = built.matriarch;
     BRANCHES = built.branches;
     liveRows = rows;
@@ -2150,7 +2381,8 @@ addForm.addEventListener('submit', async e=>{
     SpouseRole: married ? (addRelation === 'בן' ? 'אשתו' : 'בעלה') : '',
     SpouseName: married ? document.getElementById('addSpouseName').value.trim() : '',
     SpouseDate: married ? document.getElementById('addSpouseDate').value.trim() : '',
-    SpouseDeathDate: married ? document.getElementById('addSpouseDeath').value.trim() : ''
+    SpouseDeathDate: married ? document.getElementById('addSpouseDeath').value.trim() : '',
+    AnniversaryDate: married ? document.getElementById('addAnniversary').value.trim() : ''
   };
 
   addSubmit.disabled = true;
@@ -2216,6 +2448,7 @@ function openEditModal(id){
   document.getElementById('edSpouseName').value  = String(row.SpouseName ?? '');
   document.getElementById('edSpouseDate').value  = String(row.SpouseDate ?? '');
   document.getElementById('edSpouseDeath').value = String(row.SpouseDeathDate ?? '');
+  document.getElementById('edAnniversary').value = String(row.AnniversaryDate ?? '');
   document.getElementById('edCode').value        = rememberedCode();
   editMsg.textContent = ''; editMsg.className = 'modal-msg';
   editBackdrop.classList.add('show');
@@ -2264,7 +2497,8 @@ editForm.addEventListener('submit', async e=>{
     DeathDate: document.getElementById('edDeath').value.trim(),
     SpouseName: spouseName,
     SpouseDate: document.getElementById('edSpouseDate').value.trim(),
-    SpouseDeathDate: document.getElementById('edSpouseDeath').value.trim()
+    SpouseDeathDate: document.getElementById('edSpouseDeath').value.trim(),
+    AnniversaryDate: document.getElementById('edAnniversary').value.trim()
   };
   /* אם יש בן/בת זוג ואין תפקיד שמור — נגזור לפי "בן"/"בת" בשם */
   if(spouseName){
