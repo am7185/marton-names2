@@ -415,6 +415,13 @@ details[open] .chev{transform:rotate(90deg)}
 }
 .row:hover .edit-dot, .edit-dot:focus-visible{opacity:1}
 .edit-dot:hover{background:var(--accent-soft);color:var(--accent)}
+/* עיפרון בכרטיס ראשי המשפחה */
+.head-edit{margin-top:8px;display:flex;justify-content:center}
+.head-edit .edit-dot{opacity:.55}
+.matriarch:hover .head-edit .edit-dot{opacity:1}
+/* עיפרון בשורת ראש הענף (בתוך summary) */
+summary > .edit-dot{margin-inline-start:auto;opacity:.4}
+summary:hover > .edit-dot, summary > .edit-dot:focus-visible{opacity:1}
 .kids{
   margin-top:7px;margin-inline-start:6px;
   border-inline-start:2px solid var(--accent-line);
@@ -614,7 +621,11 @@ details.branch.hidden{display:none}
 .anniv-ring{font-size:20px;flex-shrink:0}
 .anniv-info{min-width:0}
 .anniv-names{font-weight:700;font-size:14.5px;color:var(--ink);line-height:1.3}
-.anniv-date{font-size:12.5px;color:var(--muted);margin-top:2px}
+.anniv-fam{
+  display:inline-block;font-size:11.5px;font-weight:700;color:var(--muted);
+  background:var(--pill);padding:1px 9px;border-radius:10px;margin-top:4px;
+}
+.anniv-date{font-size:12.5px;color:var(--muted);margin-top:3px}
 .anniv-years{font-size:11.5px;color:var(--accent);font-weight:700;margin-top:2px}
 .anniv-today-tag{font-size:11px;font-weight:800;color:var(--accent)}
 
@@ -851,9 +862,9 @@ details.branch.hidden{display:none}
 
       <!-- חלונית 3: יארצייטים -->
       <section class="ev-panel memorial-section" id="memorialSection">
-        <div class="ev-panel-head"><span class="ev-panel-icon">🕯️</span> נשמות החודש <span class="ev-panel-sub">לזכר ולעילוי נשמתם</span></div>
+        <div class="ev-panel-head"><span class="ev-panel-icon">🕯️</span> ימי זיכרון <span class="ev-panel-sub">לזכר ולעילוי נשמתם</span></div>
         <div class="memorial-list" id="memorialList"></div>
-        <div class="ev-empty hidden" id="memEmpty">אין יארצייטים החודש 🕯️</div>
+        <div class="ev-empty hidden" id="memEmpty">אין ימי זיכרון החודש 🕯️</div>
       </section>
     </div>
   </div>
@@ -1415,13 +1426,16 @@ function buildNamesTab(){
     (date?`<div class="dt">${esc(date)}</div>`:'') +
     (death?`<div class="dt-death" title="יום פטירה">🕯️ ${esc(death)}</div>`:'') +
     `</div>`;
-  document.getElementById('matriarchBox').innerHTML = m.s
+  /* גם ראשי המשפחה ניתנים לעריכה (שניהם באותה שורת גיליון) */
+  const rootEdit = editBtnHTML(m);
+  document.getElementById('matriarchBox').innerHTML = (m.s
     ? `<div class="couple">
          ${headHTML(m.n, m.d, m.dd)}
          <div class="couple-heart">♥</div>
          ${headHTML(m.s.n, m.s.d, m.s.dd)}
        </div>`
-    : `<div class="nm">${esc(m.n)}</div>${m.d?`<div class="dt">${esc(m.d)}</div>`:''}${m.dd?`<div class="dt-death">🕯️ ${esc(m.dd)}</div>`:''}`;
+    : `<div class="nm">${esc(m.n)}</div>${m.d?`<div class="dt">${esc(m.d)}</div>`:''}${m.dd?`<div class="dt-death">🕯️ ${esc(m.dd)}</div>`:''}`)
+    + (rootEdit ? `<div class="head-edit">${rootEdit}</div>` : '');
 
   branchesEl.innerHTML = BRANCHES.map((b,i) => {
     const bFam = famOf(b.n, FAMILY_ROOT);
@@ -1430,9 +1444,10 @@ function buildNamesTab(){
       <summary>
         <span class="chev">◀</span>
         <span class="b-head">
-          <div class="b-name">${esc(b.n)}${b.n.includes('(')?'':' <span class="b-fam">('+esc(bFam)+')</span>'} <span class="dt" style="font-family:'Assistant',sans-serif;font-size:13.5px">${esc(b.d)}</span></div>
-          ${b.s?`<div class="b-sub">${b.s.r}: ${esc(b.s.n)}${b.s.d?' — '+esc(b.s.d):''}</div>`:''}
+          <div class="b-name">${esc(b.n)}${b.n.includes('(')?'':' <span class="b-fam">('+esc(bFam)+')</span>'} <span class="dt" style="font-family:'Assistant',sans-serif;font-size:13.5px">${esc(b.d)}</span>${b.dd?` <span class="dt-death" title="יום פטירה">🕯️ ${esc(b.dd)}</span>`:''}</div>
+          ${b.s?`<div class="b-sub">${b.s.r}: ${esc(b.s.n)}${b.s.d?' — '+esc(b.s.d):''}${b.s.dd?` <span class="dt-death">🕯️ ${esc(b.s.dd)}</span>`:''}</div>`:''}
         </span>
+        ${editBtnHTML(b)}
       </summary>
       <div class="b-body">
         ${(b.c||[]).map(u=>unitHTML(u, bFam)).join('')}
@@ -1728,12 +1743,12 @@ function buildEvents(){
       const isToday = isCurrentMonthView && e.h.day === curDay;
       const a = ageText(e);
       const age = a ? `<div class="e-age">${esc(a)} 🎉</div>` : '';
-      const dateTxt = e.d.trim().split(/\s+/).slice(0,-1).join(' ') || e.d;
+      const dateTxt = e.d;   /* התאריך המלא — כולל שנת הלידה */
       return `<div class="event-card${isToday?' is-today':''}">
         <div class="event-icon">${isToday?'🥳':emojis[i % emojis.length]}</div>
         <span class="e-name">${esc(e.n)}</span>
         <div class="e-fam">משפחת ${esc(e.fam)}</div>
-        <div class="e-date">${esc(e.h.year ? dateTxt : e.d)}</div>
+        <div class="e-date">${esc(dateTxt)}</div>
         ${age}
       </div>`;
     }).join('');
@@ -1760,11 +1775,12 @@ function buildEvents(){
         const y = curYear - e.h.year;
         if(y > 0 && y < 130) years = `<div class="anniv-years">${y} שנות נישואין 🎉</div>`;
       }
-      const dateTxt = e.h.year ? (e.an.trim().split(/\s+/).slice(0,-1).join(' ') || e.an) : e.an;
+      const dateTxt = e.an;   /* התאריך המלא — כולל שנת הנישואין */
       return `<div class="anniv-card${isToday?' is-today':''}">
         <span class="anniv-ring">${isToday?'🎊':'💍'}</span>
         <div class="anniv-info">
           <div class="anniv-names">${esc(shortName(e.n))} ♥ ${esc(shortName(e.sn))}</div>
+          <div class="anniv-fam">משפחת ${esc(e.fam)}</div>
           <div class="anniv-date">${esc(dateTxt)}${isToday?' · <span class="anniv-today-tag">היום</span>':''}</div>
           ${years}
         </div>
@@ -2203,12 +2219,17 @@ let liveRows = null;
 
 /* הסקריפט של גוגל איטי (2-3 שניות) ולעיתים נופל בהתעוררות קרה —
    לכן מנסים עד 3 פעמים לפני שמוותרים. */
+/* פסק-זמן לכל ניסיון: בלי זה fetch עלול להיתקע לנצח כשגוגל לא מגיב,
+   והאתר נשאר תקוע על "מתעדכן..." בלי שהניסיון החוזר יופעל אי-פעם. */
+const FETCH_TIMEOUT_MS = 9000;
 async function fetchSheetRows(attempt = 1){
   const MAX = 3;
+  const ctrl = new AbortController();
+  const timer = setTimeout(()=>ctrl.abort(), FETCH_TIMEOUT_MS);
   try{
     /* cache-buster: מוודא שאף שכבת מטמון (דפדפן/רשת) לא מחזירה נתונים ישנים */
     const url = SHEET_JSON_URL + (SHEET_JSON_URL.includes('?') ? '&' : '?') + 'nc=' + Date.now();
-    const res = await fetch(url, {redirect:'follow', cache:'no-store'});
+    const res = await fetch(url, {redirect:'follow', cache:'no-store', signal: ctrl.signal});
     if(!res.ok) throw new Error('HTTP ' + res.status);
     const rows = await res.json();
     if(!Array.isArray(rows) || !rows.length) throw new Error('empty');
@@ -2219,11 +2240,16 @@ async function fetchSheetRows(attempt = 1){
       return fetchSheetRows(attempt + 1);
     }
     throw e;
+  }finally{
+    clearTimeout(timer);
   }
 }
 
+let syncing = false;   /* מונע טעינות חופפות (למשל לחיצות חוזרות על "נסה שוב") */
 async function loadFromSheet(){
   if(!isSheetConfigured(SHEET_JSON_URL)) return;
+  if(syncing) return;
+  syncing = true;
   showSyncLoading();
   try{
     const rows = await fetchSheetRows();
@@ -2238,6 +2264,8 @@ async function loadFromSheet(){
     document.getElementById('openAddBtn').classList.remove('hidden');
   }catch(e){
     showSyncStatus(false);
+  }finally{
+    syncing = false;
   }
 }
 loadFromSheet();
@@ -2461,13 +2489,16 @@ editBackdrop.addEventListener('click', e=>{ if(e.target === editBackdrop) closeE
 document.addEventListener('keydown', e=>{ if(e.key === 'Escape' && editBackdrop.classList.contains('show')) closeEditModal(); });
 
 /* לחיצה על כפתור העיפרון ליד שם */
-branchesEl.addEventListener('click', e=>{
+/* preventDefault חיוני גם כדי שלחיצה על העיפרון בתוך <summary> לא תפתח/תסגור את הענף */
+function handleEditClick(e){
   const btn = e.target.closest('.edit-dot');
   if(!btn) return;
   e.preventDefault();
   e.stopPropagation();
   openEditModal(btn.dataset.editid);
-});
+}
+branchesEl.addEventListener('click', handleEditClick);
+document.getElementById('matriarchBox').addEventListener('click', handleEditClick);
 
 async function sendSheetAction(payload){
   const res = await fetch(SHEET_JSON_URL, {
