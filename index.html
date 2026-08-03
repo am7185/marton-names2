@@ -562,7 +562,9 @@ details.branch.hidden{display:none}
   text-align:center;transform:rotate(-1deg);
 }
 .today-label{font-size:16px;font-weight:800;color:#ff9f43;display:block;margin-bottom:8px}
-.today-content{font-size:25px;font-weight:800;color:var(--ink)}
+.today-content{color:var(--ink)}
+.today-name-line{font-size:22px;font-weight:800;line-height:1.3}
+.today-meta-line{font-size:14px;font-weight:600;color:var(--muted);font-style:italic;margin-top:2px}
 .today-age{font-size:15px;font-weight:700;color:var(--accent);white-space:nowrap}
 .event-grid{
   display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
@@ -593,8 +595,10 @@ details.branch.hidden{display:none}
 }
 .e-age{font-size:12px;color:var(--muted);margin-top:6px;font-weight:600}
 .e-parent{font-size:11.5px;color:var(--muted);font-style:italic;margin-bottom:6px}
-.today-parent{font-weight:600;color:var(--muted);font-style:italic}
-.today-row{padding:4px 0;display:flex;align-items:center;flex-wrap:wrap;gap:6px}
+.today-row{padding:10px 0;display:flex;flex-direction:column;align-items:center;text-align:center}
+.today-row + .today-row{border-top:1px dashed var(--line);margin-top:6px}
+.today-actions{display:flex;align-items:center;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:8px}
+.today-actions .greet-wrap{width:auto;max-width:320px}
 .greet-btn{
   font-family:'Assistant',sans-serif;font-size:12px;font-weight:700;
   background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent);
@@ -970,6 +974,10 @@ details.branch.hidden{display:none}
           <input type="text" id="addDeath" placeholder="ריק אם בחיים">
         </label>
       </div>
+      <label class="fld">
+        <span>כינוי (אופציונלי — יוצג באירועים במקום השם המלא)</span>
+        <input type="text" id="addNickname" placeholder="לדוגמה: איצי">
+      </label>
 
       <label class="fld-check">
         <input type="checkbox" id="addMarriedCheck">
@@ -987,6 +995,10 @@ details.branch.hidden{display:none}
         <label class="fld">
           <span>💍 יום הנישואין</span>
           <input type="text" id="addAnniversary" placeholder="לדוגמה: טו אלול תשפ&quot;א">
+        </label>
+        <label class="fld">
+          <span>כינוי בן/בת הזוג (אופציונלי)</span>
+          <input type="text" id="addSpouseNickname" placeholder="לדוגמה: איצי">
         </label>
       </div>
 
@@ -1027,6 +1039,10 @@ details.branch.hidden{display:none}
         <label class="fld"><span>תאריך לידה עברי</span><input type="text" id="edDate"></label>
         <label class="fld"><span>🕯️ יום פטירה (יארצייט)</span><input type="text" id="edDeath"></label>
       </div>
+      <label class="fld">
+        <span>כינוי (אופציונלי — יוצג באירועים במקום השם המלא)</span>
+        <input type="text" id="edNickname" placeholder="לדוגמה: איצי">
+      </label>
 
       <div class="fld-divider">בן / בת הזוג (אופציונלי)</div>
       <label class="fld">
@@ -1040,6 +1056,10 @@ details.branch.hidden{display:none}
       <label class="fld">
         <span>💍 יום הנישואין</span>
         <input type="text" id="edAnniversary" placeholder="לדוגמה: טו אלול תשפ&quot;א">
+      </label>
+      <label class="fld">
+        <span>כינוי בן/בת הזוג (אופציונלי)</span>
+        <input type="text" id="edSpouseNickname" placeholder="לדוגמה: איצי">
       </label>
 
       <label class="fld">
@@ -1587,26 +1607,30 @@ function hebDateNow(){
 /* parent: שם ראש התא שאליו שייך הרישום (אביו/אמו), כדי לזהות בבירור מי זה
    כשיש כמה בני משפחה בעלי שם דומה בענפים שונים. לא מוצג לראשי הענפים עצמם
    (הם כבר מזוהים ברשימת ה-10 הענפים) — רק לצאצאיהם, "דור שני" ואילך. */
-function flatRows(p, out, fam, parent){
+function flatRows(p, out, fam, parentName){
   const f = famOf(p.n, fam);
-  out.push({n:p.n, d:p.d, dd:p.dd, fam:f, parent: parent || null, id: p.id});
-  /* בן/בת הזוג נישא/ה לתוך המשפחה — לא "מבית" ההורים של השני, אלא נשוי/ה לבן/בת המשפחה עצמו/ה
+  const male = (' '+p.n+' ').includes(' בן ');
+  /* "בנו/בתו של X" — מנוסח לפי המגדר של האדם המוצג עצמו (לא של X), כדי שיישמע כמו
+     תיאור טבעי של קרבה ולא כמו "מבית" רשמי/גנאלוגי */
+  const parentLabel = parentName ? (male ? `בנו של ${parentName}` : `בתו של ${parentName}`) : null;
+  out.push({n:p.n, nick:p.nick, d:p.d, dd:p.dd, fam:f, parent: parentLabel, id: p.id});
+  /* בן/בת הזוג נישא/ה לתוך המשפחה — לא "בנו/בתו" של ההורים של השני, אלא נשוי/ה לבן/בת המשפחה עצמו/ה
      אין להם שורת גיליון נפרדת (הם עמודות על אותה שורה) — מפתח מורכב לצורך ברכות */
   if(p.s){
     const marriedLabel = p.s.r === 'אשתו' ? `נשואה ל${shortName(p.n)}` : p.s.r === 'בעלה' ? `נשוי ל${shortName(p.n)}` : `בן/בת זוגו/ה של ${shortName(p.n)}`;
-    out.push({n:p.s.n, d:p.s.d, dd:p.s.dd, rel:p.s.r, fam:f, parent: marriedLabel, id: p.id!=null ? p.id+'-s' : null});
+    out.push({n:p.s.n, nick:p.s.nick, d:p.s.d, dd:p.s.dd, rel:p.s.r, fam:f, parent: marriedLabel, id: p.id!=null ? p.id+'-s' : null});
   }
-  /* התווית כוללת כבר את "מבית" — כך שתצוגה פשוט מדפיסה את e.parent כמו שהוא,
-     בלי לסתור את התוויות "נשוי ל.../נשואה ל..." שכבר שלמות בעצמן */
-  const parentLabel = 'מבית ' + shortName(p.n) + (f ? ` ${f}` : '');
-  (p.c||[]).forEach(k=>flatRows(k, out, f, parentLabel));
+  const nextParentName = shortName(p.n) + (f ? ` ${f}` : '');
+  (p.c||[]).forEach(k=>flatRows(k, out, f, nextParentName));
 }
 /* אוסף זוגות עם תאריך נישואין (לחלונית ימי הנישואין) */
-function flatCouples(p, out, fam, parent){
+function flatCouples(p, out, fam, parentName){
   const f = famOf(p.n, fam);
-  if(p.s && p.an) out.push({n:p.n, sn:p.s.n, an:p.an, fam:f, parent: parent || null});
-  const parentLabel = 'מבית ' + shortName(p.n) + (f ? ` ${f}` : '');
-  (p.c||[]).forEach(k=>flatCouples(k, out, f, parentLabel));
+  const male = (' '+p.n+' ').includes(' בן ');
+  const parentLabel = parentName ? (male ? `בנו של ${parentName}` : `בתו של ${parentName}`) : null;
+  if(p.s && p.an) out.push({n:p.n, nick:p.nick, sn:p.s.n, snick:p.s.nick, an:p.an, fam:f, parent: parentLabel});
+  const nextParentName = shortName(p.n) + (f ? ` ${f}` : '');
+  (p.c||[]).forEach(k=>flatCouples(k, out, f, nextParentName));
 }
 function buildPrintSheet(){
   let h = `<div class="p-stamp">עודכן: ${hebDateNow()}</div>
@@ -1864,8 +1888,8 @@ function buildEvents(){
     return `${male?'בן':'בת'} ${a}`;
   };
 
-  const all = [{n:MATRIARCH.n, d:MATRIARCH.d, dd:MATRIARCH.dd, fam:FAMILY_ROOT, id: MATRIARCH.id}];
-  if(MATRIARCH.s) all.push({n:MATRIARCH.s.n, d:MATRIARCH.s.d, dd:MATRIARCH.s.dd, rel:MATRIARCH.s.r, fam:FAMILY_ROOT, id: MATRIARCH.id!=null ? MATRIARCH.id+'-s' : null});
+  const all = [{n:MATRIARCH.n, nick:MATRIARCH.nick, d:MATRIARCH.d, dd:MATRIARCH.dd, fam:FAMILY_ROOT, id: MATRIARCH.id}];
+  if(MATRIARCH.s) all.push({n:MATRIARCH.s.n, nick:MATRIARCH.s.nick, d:MATRIARCH.s.d, dd:MATRIARCH.s.dd, rel:MATRIARCH.s.r, fam:FAMILY_ROOT, id: MATRIARCH.id!=null ? MATRIARCH.id+'-s' : null});
   BRANCHES.forEach(b=>flatRows(b, all, FAMILY_ROOT));
 
   const emojis = ['🍰','🎂','🎈','🎁','🥳','🧁','🎊','✨','🍭','🌈'];
@@ -1883,11 +1907,21 @@ function buildEvents(){
   if(todayList.length){
     document.getElementById('todayContent').innerHTML = todayList.map(e=>{
       const fam = e.n.includes('(') ? '' : ` <small style="font-weight:600;color:#ff9f43">(${esc(e.fam)})</small>`;
-      const par = e.parent ? ` <small class="today-parent">${esc(e.parent)}</small>` : '';
       const a = ageText(e);
       const male = (' '+e.n+' ').includes(' בן ');
-      const gidx = greetTargets.push({name: shortName(e.n), age: yearsSince(e.h), male, fam: e.fam}) - 1;
-      return `<div class="today-row">${esc(e.n)}${fam}${par}${a ? ` <small class="today-age">${esc(a)} 🎉</small>` : ''} <button type="button" class="greet-btn" data-gidx="${gidx}">🎉 שלח ברכה</button> ${greetBlockHTML(e.id)}</div>`;
+      const displayName = e.nick || e.n;
+      const gidx = greetTargets.push({name: e.nick || shortName(e.n), age: yearsSince(e.h), male, fam: e.fam}) - 1;
+      /* הגיל צמוד לשם (שייך לחוגג/ת) ולא לשורת "נשוי/מבית" שאחריו, כדי שלא ייקרא כאילו הגיל שייך לבן/בת הזוג */
+      const nameLine = `${esc(displayName)}${fam}${a ? ` <span class="today-age">${esc(a)} 🎉</span>` : ''}`;
+      const metaLine = e.parent ? `<div class="today-meta-line">${esc(e.parent)}</div>` : '';
+      return `<div class="today-row">
+        <div class="today-name-line">${nameLine}</div>
+        ${metaLine}
+        <div class="today-actions">
+          <button type="button" class="greet-btn" data-gidx="${gidx}">🎉 שלח ברכה</button>
+          ${greetBlockHTML(e.id)}
+        </div>
+      </div>`;
     }).join('');
     todayCard.classList.remove('hidden');
   } else {
@@ -1908,10 +1942,11 @@ function buildEvents(){
       const dateTxt = e.d;   /* התאריך המלא — כולל שנת הלידה */
       const parentLine = e.parent ? `<div class="e-parent">${esc(e.parent)}</div>` : '';
       const male = (' '+e.n+' ').includes(' בן ');
-      const gidx = greetTargets.push({name: shortName(e.n), age: yearsSince(e.h), male, fam: e.fam}) - 1;
+      const displayName = e.nick || e.n;
+      const gidx = greetTargets.push({name: e.nick || shortName(e.n), age: yearsSince(e.h), male, fam: e.fam}) - 1;
       return `<div class="event-card${isToday?' is-today':''}">
         <div class="event-icon">${isToday?'🥳':emojis[i % emojis.length]}</div>
-        <span class="e-name">${esc(e.n)}</span>
+        <span class="e-name">${esc(displayName)}</span>
         <div class="e-fam">משפחת ${esc(e.fam)}</div>
         ${parentLine}
         <div class="e-date">${esc(dateTxt)}</div>
@@ -1924,7 +1959,7 @@ function buildEvents(){
 
   /* --- חלונית ימי נישואין --- */
   const couples = [];
-  if(MATRIARCH.s && MATRIARCH.an) couples.push({n:MATRIARCH.n, sn:MATRIARCH.s.n, an:MATRIARCH.an, fam:FAMILY_ROOT});
+  if(MATRIARCH.s && MATRIARCH.an) couples.push({n:MATRIARCH.n, nick:MATRIARCH.nick, sn:MATRIARCH.s.n, snick:MATRIARCH.s.nick, an:MATRIARCH.an, fam:FAMILY_ROOT});
   BRANCHES.forEach(b=>flatCouples(b, couples, FAMILY_ROOT));
 
   const annivs = [];
@@ -1948,7 +1983,7 @@ function buildEvents(){
       return `<div class="anniv-card${isToday?' is-today':''}">
         <span class="anniv-ring">${isToday?'🎊':'💍'}</span>
         <div class="anniv-info">
-          <div class="anniv-names">${esc(shortName(e.n))} ♥ ${esc(shortName(e.sn))}</div>
+          <div class="anniv-names">${esc(e.nick || shortName(e.n))} ♥ ${esc(e.snick || shortName(e.sn))}</div>
           <div class="anniv-fam">משפחת ${esc(e.fam)}</div>
           ${parentLine}
           <div class="anniv-date">${esc(dateTxt)}${isToday?' · <span class="anniv-today-tag">היום</span>':''}</div>
@@ -1978,7 +2013,7 @@ function buildEvents(){
       return `<div class="memorial-card${isToday?' is-today':''}">
         <span class="memorial-flame">🕯️</span>
         <div class="memorial-info">
-          <div class="memorial-name">${esc(e.n)}</div>
+          <div class="memorial-name">${esc(e.nick || e.n)}</div>
           ${parentLine}
           <div class="memorial-date">${esc(e.dd.trim())}${isToday?' · <span class="memorial-today-tag">היום</span>':''}</div>
         </div>
@@ -2320,10 +2355,12 @@ function buildFromRows(rows){
       surname: String(r.Surname ?? '').trim(),
       date: String(r.Date ?? '').trim(),
       deathDate: String(r.DeathDate ?? '').trim(),
+      nickname: String(r.Nickname ?? '').trim(),
       spouseRole: String(r.SpouseRole ?? '').trim(),
       spouseName: String(r.SpouseName ?? '').trim(),
       spouseDate: String(r.SpouseDate ?? '').trim(),
       spouseDeathDate: String(r.SpouseDeathDate ?? '').trim(),
+      spouseNickname: String(r.SpouseNickname ?? '').trim(),
       anniversaryDate: String(r.AnniversaryDate ?? '').trim(),
       kids: []
     });
@@ -2345,11 +2382,12 @@ function buildFromRows(rows){
   const toModel = node => ({
     id: node.id,
     n: node.name + (node.surname ? ` (${node.surname})` : ''),
+    nick: node.nickname || undefined,
     d: node.date || undefined,
     dd: node.deathDate || undefined,
     an: node.anniversaryDate || undefined,
     _raw: node,
-    s: node.spouseName ? {r: node.spouseRole || 'בן/בת זוג', n: node.spouseName, d: node.spouseDate || undefined, dd: node.spouseDeathDate || undefined} : undefined,
+    s: node.spouseName ? {r: node.spouseRole || 'בן/בת זוג', n: node.spouseName, nick: node.spouseNickname || undefined, d: node.spouseDate || undefined, dd: node.spouseDeathDate || undefined} : undefined,
     c: node.kids.map(toModel)
   });
 
@@ -2357,10 +2395,11 @@ function buildFromRows(rows){
     matriarch: {
       id: root.id, _raw: root,
       n: root.name,
+      nick: root.nickname || undefined,
       d: root.date,
       dd: root.deathDate || undefined,
       an: root.anniversaryDate || undefined,
-      s: root.spouseName ? {r: root.spouseRole || 'בעלה', n: root.spouseName, d: root.spouseDate || undefined, dd: root.spouseDeathDate || undefined} : undefined
+      s: root.spouseName ? {r: root.spouseRole || 'בעלה', n: root.spouseName, nick: root.spouseNickname || undefined, d: root.spouseDate || undefined, dd: root.spouseDeathDate || undefined} : undefined
     },
     branches: root.kids.map(toModel)
   };
@@ -2603,10 +2642,12 @@ addForm.addEventListener('submit', async e=>{
     Surname: hasSurname ? document.getElementById('addSurname').value.trim() : '',
     Date: document.getElementById('addDate').value.trim(),
     DeathDate: document.getElementById('addDeath').value.trim(),
+    Nickname: document.getElementById('addNickname').value.trim(),
     SpouseRole: married ? (addRelation === 'בן' ? 'אשתו' : 'בעלה') : '',
     SpouseName: married ? document.getElementById('addSpouseName').value.trim() : '',
     SpouseDate: married ? document.getElementById('addSpouseDate').value.trim() : '',
     SpouseDeathDate: married ? document.getElementById('addSpouseDeath').value.trim() : '',
+    SpouseNickname: married ? document.getElementById('addSpouseNickname').value.trim() : '',
     AnniversaryDate: married ? document.getElementById('addAnniversary').value.trim() : ''
   };
 
@@ -2674,6 +2715,8 @@ function openEditModal(id){
   document.getElementById('edSpouseDate').value  = String(row.SpouseDate ?? '');
   document.getElementById('edSpouseDeath').value = String(row.SpouseDeathDate ?? '');
   document.getElementById('edAnniversary').value = String(row.AnniversaryDate ?? '');
+  document.getElementById('edNickname').value       = String(row.Nickname ?? '');
+  document.getElementById('edSpouseNickname').value = String(row.SpouseNickname ?? '');
   document.getElementById('edCode').value        = rememberedCode();
   editMsg.textContent = ''; editMsg.className = 'modal-msg';
   editBackdrop.classList.add('show');
@@ -2723,9 +2766,11 @@ editForm.addEventListener('submit', async e=>{
     Surname: document.getElementById('edSurname').value.trim(),
     Date: document.getElementById('edDate').value.trim(),
     DeathDate: document.getElementById('edDeath').value.trim(),
+    Nickname: document.getElementById('edNickname').value.trim(),
     SpouseName: spouseName,
     SpouseDate: document.getElementById('edSpouseDate').value.trim(),
     SpouseDeathDate: document.getElementById('edSpouseDeath').value.trim(),
+    SpouseNickname: document.getElementById('edSpouseNickname').value.trim(),
     AnniversaryDate: document.getElementById('edAnniversary').value.trim()
   };
   /* אם יש בן/בת זוג ואין תפקיד שמור — נגזור לפי "בן"/"בת" בשם */
