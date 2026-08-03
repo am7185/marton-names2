@@ -2221,9 +2221,9 @@ let liveRows = null;
    לכן מנסים עד 3 פעמים לפני שמוותרים. */
 /* פסק-זמן לכל ניסיון: בלי זה fetch עלול להיתקע לנצח כשגוגל לא מגיב,
    והאתר נשאר תקוע על "מתעדכן..." בלי שהניסיון החוזר יופעל אי-פעם. */
-const FETCH_TIMEOUT_MS = 9000;
+const FETCH_TIMEOUT_MS = 12000;
 async function fetchSheetRows(attempt = 1){
-  const MAX = 3;
+  const MAX = 4;
   const ctrl = new AbortController();
   const timer = setTimeout(()=>ctrl.abort(), FETCH_TIMEOUT_MS);
   try{
@@ -2245,6 +2245,20 @@ async function fetchSheetRows(attempt = 1){
   }
 }
 
+/* שרת הגיליון (Apps Script) לפעמים נכשל או איטי מאוד — שומרים מקומית את
+   הנתונים החיים האחרונים שהתקבלו בהצלחה, כדי שגם בכשל נציג את המצב העדכני
+   ביותר שידוע לנו, ולא את התמונה הסטטית הישנה שנאפתה בזמן הבנייה. */
+const ROWS_CACHE_KEY = 'martonRowsCacheV1';
+function saveRowsCache(rows){
+  try{ localStorage.setItem(ROWS_CACHE_KEY, JSON.stringify({rows, ts: Date.now()})); }catch(e){}
+}
+function loadRowsCache(){
+  try{
+    const parsed = JSON.parse(localStorage.getItem(ROWS_CACHE_KEY) || 'null');
+    return (parsed && Array.isArray(parsed.rows) && parsed.rows.length) ? parsed.rows : null;
+  }catch(e){ return null; }
+}
+
 let syncing = false;   /* מונע טעינות חופפות (למשל לחיצות חוזרות על "נסה שוב") */
 async function loadFromSheet(){
   if(!isSheetConfigured(SHEET_JSON_URL)) return;
@@ -2258,11 +2272,21 @@ async function loadFromSheet(){
     MATRIARCH = built.matriarch;
     BRANCHES = built.branches;
     liveRows = rows;
+    saveRowsCache(rows);
     editMode = true;   /* מאפשר עריכה/מחיקה כשמחוברים לגיליון */
     renderAll();
     showSyncStatus(true, rows.length);
     document.getElementById('openAddBtn').classList.remove('hidden');
   }catch(e){
+    const cached = loadRowsCache();
+    const built = cached && buildFromRows(cached);
+    if(built){
+      MATRIARCH = built.matriarch;
+      BRANCHES = built.branches;
+      liveRows = cached;
+      editMode = true;
+      renderAll();
+    }
     showSyncStatus(false);
   }finally{
     syncing = false;
