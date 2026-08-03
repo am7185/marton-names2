@@ -1,7 +1,8 @@
 /* Service Worker — משפחת מרטון PWA
    מטמון "app shell" לפתיחה מהירה ולעבודה אופליין.
-   נתוני הגיליון (script.google.com) לעולם לא נשמרים במטמון — תמיד מהרשת, כדי להישאר עדכניים. */
-const CACHE = 'marton-app-v1';
+   נתוני הגיליון (script.google.com) לעולם לא נשמרים במטמון — תמיד מהרשת, כדי להישאר עדכניים.
+   קוד האתר עצמו (index.html) — קודם מהרשת (עדכונים מגיעים מיד), מטמון רק כגיבוי אופליין. */
+const CACHE = 'marton-app-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -39,7 +40,23 @@ self.addEventListener('fetch', event => {
   // רק משאבים מאותו מקור (האתר עצמו)
   if (url.origin !== location.origin) return;
 
-  // אסטרטגיה: קודם מטמון (מהיר + אופליין), ובמקביל מרעננים מהרשת ברקע
+  // דף ה-HTML עצמו (ניווט) — קודם מהרשת, כדי שעדכוני קוד יגיעו מיד בכל טעינה;
+  // המטמון משמש רק כגיבוי כשאין רשת (אופליין), לא כמקור ברירת מחדל
+  const isNavigation = req.mode === 'navigate' || url.pathname.endsWith('.html') || url.pathname.endsWith('/');
+  if (isNavigation) {
+    event.respondWith(
+      fetch(req, {cache: 'no-store'}).then(resp => {
+        if (resp && resp.status === 200) {
+          const copy = resp.clone();
+          caches.open(CACHE).then(cache => cache.put(req, copy));
+        }
+        return resp;
+      }).catch(() => caches.match(req))
+    );
+    return;
+  }
+
+  // שאר נכסי המעטפת (אייקונים, manifest) — משתנים לעיתים רחוקות, קודם מטמון למהירות
   event.respondWith(
     caches.match(req).then(cached => {
       const network = fetch(req).then(resp => {
