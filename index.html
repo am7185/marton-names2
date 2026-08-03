@@ -592,6 +592,43 @@ details.branch.hidden{display:none}
   margin-bottom:7px;
 }
 .e-age{font-size:12px;color:var(--muted);margin-top:6px;font-weight:600}
+.e-parent{font-size:11.5px;color:var(--muted);font-style:italic;margin-bottom:6px}
+.today-parent{font-weight:600;color:var(--muted);font-style:italic}
+.today-row{padding:4px 0;display:flex;align-items:center;flex-wrap:wrap;gap:6px}
+.greet-btn{
+  font-family:'Assistant',sans-serif;font-size:12px;font-weight:700;
+  background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent);
+  border-radius:12px;padding:3px 11px;cursor:pointer;white-space:nowrap;
+}
+.greet-btn:hover{background:var(--accent);color:#fff}
+.event-card .greet-btn{margin-top:8px}
+.greet-wrap{display:inline-block;text-align:start;width:100%}
+.event-card .greet-wrap{margin-top:6px}
+.greet-toggle{
+  font-family:'Assistant',sans-serif;font-size:12px;font-weight:700;
+  background:var(--pill);color:var(--ink);border:1px solid var(--line);
+  border-radius:12px;padding:3px 11px;cursor:pointer;white-space:nowrap;
+}
+.greet-toggle:hover{border-color:var(--accent)}
+.greet-panel{
+  margin-top:8px;padding:10px;border-radius:10px;background:var(--pill);
+  text-align:start;width:100%;box-sizing:border-box;
+}
+.greet-panel.hidden{display:none}
+.greet-list{display:flex;flex-direction:column;gap:5px;margin-bottom:8px;max-height:140px;overflow-y:auto}
+.greet-item{font-size:12.5px;color:var(--ink);line-height:1.4;word-break:break-word}
+.greet-item b{color:var(--accent)}
+.greet-empty{font-size:12px;color:var(--muted);font-style:italic}
+.greet-form{display:flex;flex-direction:column;gap:6px}
+.greet-form input{
+  font-family:'Assistant',sans-serif;font-size:13px;border:1px solid var(--line);
+  border-radius:8px;padding:6px 9px;background:var(--card);color:var(--ink);width:100%;box-sizing:border-box;
+}
+.greet-form button{
+  font-family:'Assistant',sans-serif;font-size:13px;font-weight:700;
+  background:var(--accent);color:#fff;border:none;border-radius:8px;padding:6px 9px;cursor:pointer;
+}
+.greet-form button:disabled{opacity:.6;cursor:default}
 .ev-empty{text-align:center;color:var(--muted);font-size:15.5px;padding:24px 10px}
 
 /* ---- שלוש החלוניות: ימי הולדת / ימי נישואין / נשמות ---- */
@@ -625,6 +662,7 @@ details.branch.hidden{display:none}
   display:inline-block;font-size:11.5px;font-weight:700;color:var(--muted);
   background:var(--pill);padding:1px 9px;border-radius:10px;margin-top:4px;
 }
+.anniv-parent{font-size:11px;color:var(--muted);font-style:italic;margin-top:2px}
 .anniv-date{font-size:12.5px;color:var(--muted);margin-top:3px}
 .anniv-years{font-size:11.5px;color:var(--accent);font-weight:700;margin-top:2px}
 .anniv-today-tag{font-size:11px;font-weight:800;color:var(--accent)}
@@ -643,6 +681,7 @@ details.branch.hidden{display:none}
 .memorial-flame{font-size:20px;flex-shrink:0}
 .memorial-info{min-width:0}
 .memorial-name{font-weight:700;font-size:14.5px;color:var(--ink);line-height:1.25}
+.memorial-parent{font-size:11px;color:var(--muted);font-style:italic;margin-top:2px}
 .memorial-date{font-size:12.5px;color:var(--muted);margin-top:2px}
 .memorial-today-tag{font-size:11px;font-weight:800;color:var(--accent)}
 @media (max-width:600px){
@@ -1363,7 +1402,7 @@ let BRANCHES = SEED_BRANCHES;
 let total = 0;
 
 /* כתובת ה-Web App של הגיליון המשותף (Apps Script). כשיוגדר קישור אמיתי, הרשימה תתעדכן אוטומטית לכולם. */
-const SHEET_JSON_URL = 'https://script.google.com/macros/s/AKfycbwFWv3M5dVCj49ZDulaYNJ1rNAN7Y0Xln635x5zAjn1oR0f_LZdeARpPQRh4oPIEhUV/exec';
+const SHEET_JSON_URL = 'https://script.google.com/macros/s/AKfycbwi1uo-GHPDtUM6_Dt0hPOX3UmDoyNPYiyK_pfGnq7i15d8lVbnCktHDnhW_2NNd_hn/exec';
 
 /* ---------- helpers ---------- */
 const esc = s => (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -1545,17 +1584,29 @@ function hebDateNow(){
     return `${gematria(d)} ב${m} ${gematria(y%1000)}`;
   }catch(e){ return new Date().toLocaleDateString('he-IL'); }
 }
-function flatRows(p, out, fam){
+/* parent: שם ראש התא שאליו שייך הרישום (אביו/אמו), כדי לזהות בבירור מי זה
+   כשיש כמה בני משפחה בעלי שם דומה בענפים שונים. לא מוצג לראשי הענפים עצמם
+   (הם כבר מזוהים ברשימת ה-10 הענפים) — רק לצאצאיהם, "דור שני" ואילך. */
+function flatRows(p, out, fam, parent){
   const f = famOf(p.n, fam);
-  out.push({n:p.n, d:p.d, dd:p.dd, fam:f});
-  if(p.s) out.push({n:p.s.n, d:p.s.d, dd:p.s.dd, rel:p.s.r, fam:f});
-  (p.c||[]).forEach(k=>flatRows(k,out,f));
+  out.push({n:p.n, d:p.d, dd:p.dd, fam:f, parent: parent || null, id: p.id});
+  /* בן/בת הזוג נישא/ה לתוך המשפחה — לא "מבית" ההורים של השני, אלא נשוי/ה לבן/בת המשפחה עצמו/ה
+     אין להם שורת גיליון נפרדת (הם עמודות על אותה שורה) — מפתח מורכב לצורך ברכות */
+  if(p.s){
+    const marriedLabel = p.s.r === 'אשתו' ? `נשואה ל${shortName(p.n)}` : p.s.r === 'בעלה' ? `נשוי ל${shortName(p.n)}` : `בן/בת זוגו/ה של ${shortName(p.n)}`;
+    out.push({n:p.s.n, d:p.s.d, dd:p.s.dd, rel:p.s.r, fam:f, parent: marriedLabel, id: p.id!=null ? p.id+'-s' : null});
+  }
+  /* התווית כוללת כבר את "מבית" — כך שתצוגה פשוט מדפיסה את e.parent כמו שהוא,
+     בלי לסתור את התוויות "נשוי ל.../נשואה ל..." שכבר שלמות בעצמן */
+  const parentLabel = 'מבית ' + shortName(p.n) + (f ? ` ${f}` : '');
+  (p.c||[]).forEach(k=>flatRows(k, out, f, parentLabel));
 }
 /* אוסף זוגות עם תאריך נישואין (לחלונית ימי הנישואין) */
-function flatCouples(p, out, fam){
+function flatCouples(p, out, fam, parent){
   const f = famOf(p.n, fam);
-  if(p.s && p.an) out.push({n:p.n, sn:p.s.n, an:p.an, fam:f});
-  (p.c||[]).forEach(k=>flatCouples(k, out, f));
+  if(p.s && p.an) out.push({n:p.n, sn:p.s.n, an:p.an, fam:f, parent: parent || null});
+  const parentLabel = 'מבית ' + shortName(p.n) + (f ? ` ${f}` : '');
+  (p.c||[]).forEach(k=>flatCouples(k, out, f, parentLabel));
 }
 function buildPrintSheet(){
   let h = `<div class="p-stamp">עודכן: ${hebDateNow()}</div>
@@ -1643,6 +1694,113 @@ function inCurrentMonth(m, cur){
 /* ---------- בורר החודש ---------- */
 let viewMonth = null;   /* מפתח החודש המוצג; null = החודש הנוכחי */
 
+/* כפתורי "שלח ברכה" — נשמרים לפי אינדקס כדי לא להטמיע שם גולמי (עם גרשיים/גרשים) בתוך attribute ב-HTML */
+let greetTargets = [];
+function shareBirthdayGreeting(idx){
+  const t = greetTargets[idx];
+  if(!t) return;
+  const ageLine = t.age ? `מלאו ל${t.male?'ו':'ה'} ${t.age} שנים! ` : '';
+  const msg = `🎂 יום הולדת שמח ל${t.name}! ${ageLine}שיהיה במזל טוב, בשמחה ובריאות, ושנזכה לשמוח יחד תמיד! 🎉\n– משפחת ${t.fam || 'מרטון'}`;
+  if(navigator.share){
+    navigator.share({text: msg}).catch(()=>{});
+  } else {
+    window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank', 'noopener');
+  }
+}
+/* ---------- ברכות יום הולדת שנשארות באתר (גיליון "Greetings" נפרד) ---------- */
+/* מפתח → מערך ברכות. המפתח הוא ה-ID מהגיליון (או ID+"-s" לבן/בת זוג, שאין להם שורה נפרדת) */
+let GREETINGS = {};
+function greetingsFor(id){
+  return (id!=null && GREETINGS[String(id)]) || [];
+}
+async function loadGreetings(){
+  if(!isSheetConfigured(SHEET_JSON_URL)) return;
+  try{
+    const url = SHEET_JSON_URL + (SHEET_JSON_URL.includes('?') ? '&' : '?') + 'sheet=greetings&nc=' + Date.now();
+    const res = await fetch(url, {redirect:'follow', cache:'no-store'});
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const rows = await res.json();
+    const map = {};
+    (Array.isArray(rows) ? rows : []).forEach(r=>{
+      const key = String(r.PersonKey || '').trim();
+      if(!key) return;
+      (map[key] = map[key] || []).push({name: String(r.Name || '').trim(), message: String(r.Message || '').trim()});
+    });
+    GREETINGS = map;
+    buildEvents();
+  }catch(e){ /* שקט — פשוט לא יוצגו ברכות קיימות בטעינה הזו, לא קריטי */ }
+}
+function savedGreeterName(){
+  try{ return localStorage.getItem('martonGreeterName') || ''; }catch(e){ return ''; }
+}
+
+/* חלונית "כתבו ברכה" — מוצגת רק כשמחוברים לגיליון החי (יש id אמיתי לכתוב אליו) */
+function greetBlockHTML(id){
+  if(!editMode || id==null) return '';
+  const pkey = esc(String(id));
+  const list = greetingsFor(id);
+  const listHTML = list.length
+    ? list.map(g=>`<div class="greet-item"><b>${esc(g.name)}:</b> ${esc(g.message)}</div>`).join('')
+    : `<div class="greet-empty">אין עדיין ברכות — היו הראשונים! 🎉</div>`;
+  return `<span class="greet-wrap">
+    <button type="button" class="greet-toggle" data-pkey="${pkey}">💬 ברכות (${list.length})</button>
+    <div class="greet-panel hidden" id="greetPanel-${pkey}">
+      <div class="greet-list">${listHTML}</div>
+      <form class="greet-form" data-pkey="${pkey}">
+        <input type="text" class="greet-name-input" placeholder="השם שלך" maxlength="40" value="${esc(savedGreeterName())}" required>
+        <input type="text" class="greet-msg-input" placeholder="כתבו ברכה..." maxlength="200" required>
+        <button type="submit">שליחה</button>
+      </form>
+    </div>
+  </span>`;
+}
+
+document.getElementById('panel-events').addEventListener('click', e=>{
+  const shareBtn = e.target.closest('.greet-btn');
+  if(shareBtn){ shareBirthdayGreeting(Number(shareBtn.dataset.gidx)); return; }
+  const toggle = e.target.closest('.greet-toggle');
+  if(toggle){
+    const panel = document.getElementById('greetPanel-' + toggle.dataset.pkey);
+    if(panel) panel.classList.toggle('hidden');
+  }
+});
+document.getElementById('panel-events').addEventListener('submit', async e=>{
+  const form = e.target.closest('.greet-form');
+  if(!form) return;
+  e.preventDefault();
+  const pkey = form.dataset.pkey;
+  const nameInput = form.querySelector('.greet-name-input');
+  const msgInput = form.querySelector('.greet-msg-input');
+  const name = nameInput.value.trim();
+  const message = msgInput.value.trim();
+  if(!name || !message) return;
+  const submitBtn = form.querySelector('button[type="submit"]');
+  submitBtn.disabled = true;
+  try{
+    const res = await sendSheetAction({action:'greet', PersonKey: pkey, Name: name, Message: message});
+    if(res && res.ok){
+      try{ localStorage.setItem('martonGreeterName', name); }catch(err){}
+      (GREETINGS[pkey] = GREETINGS[pkey] || []).push({name, message});
+      const panel = document.getElementById('greetPanel-' + pkey);
+      const listEl = panel && panel.querySelector('.greet-list');
+      if(listEl){
+        const empty = listEl.querySelector('.greet-empty');
+        if(empty) empty.remove();
+        const item = document.createElement('div');
+        item.className = 'greet-item';
+        const b = document.createElement('b');
+        b.textContent = name + ':';
+        item.append(b, document.createTextNode(' ' + message));
+        listEl.appendChild(item);
+      }
+      const toggleBtn = document.querySelector(`.greet-toggle[data-pkey="${CSS.escape(pkey)}"]`);
+      if(toggleBtn) toggleBtn.textContent = `💬 ברכות (${GREETINGS[pkey].length})`;
+      msgInput.value = '';
+    }
+  }catch(err){ /* שקט — אפשר לנסות שוב */ }
+  finally{ submitBtn.disabled = false; }
+});
+
 /* שנה עברית מעוברת? (7·שנה+1) mod 19 < 7 */
 function isHebLeap(y){ return ((7 * y + 1) % 19) < 7; }
 
@@ -1706,8 +1864,8 @@ function buildEvents(){
     return `${male?'בן':'בת'} ${a}`;
   };
 
-  const all = [{n:MATRIARCH.n, d:MATRIARCH.d, dd:MATRIARCH.dd, fam:FAMILY_ROOT}];
-  if(MATRIARCH.s) all.push({n:MATRIARCH.s.n, d:MATRIARCH.s.d, dd:MATRIARCH.s.dd, rel:MATRIARCH.s.r, fam:FAMILY_ROOT});
+  const all = [{n:MATRIARCH.n, d:MATRIARCH.d, dd:MATRIARCH.dd, fam:FAMILY_ROOT, id: MATRIARCH.id}];
+  if(MATRIARCH.s) all.push({n:MATRIARCH.s.n, d:MATRIARCH.s.d, dd:MATRIARCH.s.dd, rel:MATRIARCH.s.r, fam:FAMILY_ROOT, id: MATRIARCH.id!=null ? MATRIARCH.id+'-s' : null});
   BRANCHES.forEach(b=>flatRows(b, all, FAMILY_ROOT));
 
   const emojis = ['🍰','🎂','🎈','🎁','🥳','🧁','🎊','✨','🍭','🌈'];
@@ -1717,6 +1875,7 @@ function buildEvents(){
     if(h && inCurrentMonth(h.month, viewMonth)) events.push({...p, h});
   });
   events.sort((a,b)=>a.h.day - b.h.day);
+  greetTargets = [];
 
   /* כרטיס "חוגגים היום" — רק בתצוגת החודש הנוכחי, ועם הגיל */
   const todayCard = document.getElementById('todayCard');
@@ -1724,9 +1883,12 @@ function buildEvents(){
   if(todayList.length){
     document.getElementById('todayContent').innerHTML = todayList.map(e=>{
       const fam = e.n.includes('(') ? '' : ` <small style="font-weight:600;color:#ff9f43">(${esc(e.fam)})</small>`;
+      const par = e.parent ? ` <small class="today-parent">${esc(e.parent)}</small>` : '';
       const a = ageText(e);
-      return esc(e.n) + fam + (a ? ` <small class="today-age">${esc(a)} 🎉</small>` : '');
-    }).join('<br>');
+      const male = (' '+e.n+' ').includes(' בן ');
+      const gidx = greetTargets.push({name: shortName(e.n), age: yearsSince(e.h), male, fam: e.fam}) - 1;
+      return `<div class="today-row">${esc(e.n)}${fam}${par}${a ? ` <small class="today-age">${esc(a)} 🎉</small>` : ''} <button type="button" class="greet-btn" data-gidx="${gidx}">🎉 שלח ברכה</button> ${greetBlockHTML(e.id)}</div>`;
+    }).join('');
     todayCard.classList.remove('hidden');
   } else {
     todayCard.classList.add('hidden');
@@ -1744,12 +1906,18 @@ function buildEvents(){
       const a = ageText(e);
       const age = a ? `<div class="e-age">${esc(a)} 🎉</div>` : '';
       const dateTxt = e.d;   /* התאריך המלא — כולל שנת הלידה */
+      const parentLine = e.parent ? `<div class="e-parent">${esc(e.parent)}</div>` : '';
+      const male = (' '+e.n+' ').includes(' בן ');
+      const gidx = greetTargets.push({name: shortName(e.n), age: yearsSince(e.h), male, fam: e.fam}) - 1;
       return `<div class="event-card${isToday?' is-today':''}">
         <div class="event-icon">${isToday?'🥳':emojis[i % emojis.length]}</div>
         <span class="e-name">${esc(e.n)}</span>
         <div class="e-fam">משפחת ${esc(e.fam)}</div>
+        ${parentLine}
         <div class="e-date">${esc(dateTxt)}</div>
         ${age}
+        <button type="button" class="greet-btn" data-gidx="${gidx}">🎉 שלח ברכה</button>
+        ${greetBlockHTML(e.id)}
       </div>`;
     }).join('');
   }
@@ -1776,11 +1944,13 @@ function buildEvents(){
         if(y > 0 && y < 130) years = `<div class="anniv-years">${y} שנות נישואין 🎉</div>`;
       }
       const dateTxt = e.an;   /* התאריך המלא — כולל שנת הנישואין */
+      const parentLine = e.parent ? `<div class="anniv-parent">${esc(e.parent)}</div>` : '';
       return `<div class="anniv-card${isToday?' is-today':''}">
         <span class="anniv-ring">${isToday?'🎊':'💍'}</span>
         <div class="anniv-info">
           <div class="anniv-names">${esc(shortName(e.n))} ♥ ${esc(shortName(e.sn))}</div>
           <div class="anniv-fam">משפחת ${esc(e.fam)}</div>
+          ${parentLine}
           <div class="anniv-date">${esc(dateTxt)}${isToday?' · <span class="anniv-today-tag">היום</span>':''}</div>
           ${years}
         </div>
@@ -1804,10 +1974,12 @@ function buildEvents(){
   if(yahr.length){
     memList.innerHTML = yahr.map(e=>{
       const isToday = isCurrentMonthView && e.h.day === curDay;
+      const parentLine = e.parent ? `<div class="memorial-parent">${esc(e.parent)}</div>` : '';
       return `<div class="memorial-card${isToday?' is-today':''}">
         <span class="memorial-flame">🕯️</span>
         <div class="memorial-info">
           <div class="memorial-name">${esc(e.n)}</div>
+          ${parentLine}
           <div class="memorial-date">${esc(e.dd.trim())}${isToday?' · <span class="memorial-today-tag">היום</span>':''}</div>
         </div>
       </div>`;
@@ -2293,6 +2465,7 @@ async function loadFromSheet(){
   }
 }
 loadFromSheet();
+loadGreetings();
 
 /* ---------- הוספת שם חדש מהאתר (רק כשמחוברים לגיליון החי) ---------- */
 const addBackdrop = document.getElementById('addBackdrop');
