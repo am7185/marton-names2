@@ -1607,12 +1607,13 @@ function hebDateNow(){
 /* parent: שם ראש התא שאליו שייך הרישום (אביו/אמו), כדי לזהות בבירור מי זה
    כשיש כמה בני משפחה בעלי שם דומה בענפים שונים. לא מוצג לראשי הענפים עצמם
    (הם כבר מזוהים ברשימת ה-10 הענפים) — רק לצאצאיהם, "דור שני" ואילך. */
-function flatRows(p, out, fam, parentName){
+function flatRows(p, out, fam, parentName, parentMale){
   const f = famOf(p.n, fam);
   const male = (' '+p.n+' ').includes(' בן ');
-  /* "בנו/בתו של X" — מנוסח לפי המגדר של האדם המוצג עצמו (לא של X), כדי שיישמע כמו
-     תיאור טבעי של קרבה ולא כמו "מבית" רשמי/גנאלוגי */
-  const parentLabel = parentName ? (male ? `בנו של ${parentName}` : `בתו של ${parentName}`) : null;
+  /* "בנו/בתו של X" (X זכר) לעומת "בנה/בתה של X" (X נקבה) — "בן/בת" לפי מגדר האדם המוצג,
+     והסיומת הרכושנית (ו="שלו"/ה="שלה") לפי מגדר X עצמו, לא לפי מגדר האדם המוצג */
+  const relWord = parentName ? (male ? 'בנ' : 'בת') + (parentMale ? 'ו' : 'ה') : null;
+  const parentLabel = relWord ? `${relWord} של ${parentName}` : null;
   out.push({n:p.n, nick:p.nick, d:p.d, dd:p.dd, fam:f, parent: parentLabel, id: p.id});
   /* בן/בת הזוג נישא/ה לתוך המשפחה — לא "בנו/בתו" של ההורים של השני, אלא נשוי/ה לבן/בת המשפחה עצמו/ה
      אין להם שורת גיליון נפרדת (הם עמודות על אותה שורה) — מפתח מורכב לצורך ברכות */
@@ -1621,16 +1622,17 @@ function flatRows(p, out, fam, parentName){
     out.push({n:p.s.n, nick:p.s.nick, d:p.s.d, dd:p.s.dd, rel:p.s.r, fam:f, parent: marriedLabel, id: p.id!=null ? p.id+'-s' : null});
   }
   const nextParentName = shortName(p.n) + (f ? ` ${f}` : '');
-  (p.c||[]).forEach(k=>flatRows(k, out, f, nextParentName));
+  (p.c||[]).forEach(k=>flatRows(k, out, f, nextParentName, male));
 }
 /* אוסף זוגות עם תאריך נישואין (לחלונית ימי הנישואין) */
-function flatCouples(p, out, fam, parentName){
+function flatCouples(p, out, fam, parentName, parentMale){
   const f = famOf(p.n, fam);
   const male = (' '+p.n+' ').includes(' בן ');
-  const parentLabel = parentName ? (male ? `בנו של ${parentName}` : `בתו של ${parentName}`) : null;
+  const relWord = parentName ? (male ? 'בנ' : 'בת') + (parentMale ? 'ו' : 'ה') : null;
+  const parentLabel = relWord ? `${relWord} של ${parentName}` : null;
   if(p.s && p.an) out.push({n:p.n, nick:p.nick, sn:p.s.n, snick:p.s.nick, an:p.an, fam:f, parent: parentLabel});
   const nextParentName = shortName(p.n) + (f ? ` ${f}` : '');
-  (p.c||[]).forEach(k=>flatCouples(k, out, f, nextParentName));
+  (p.c||[]).forEach(k=>flatCouples(k, out, f, nextParentName, male));
 }
 function buildPrintSheet(){
   let h = `<div class="p-stamp">עודכן: ${hebDateNow()}</div>
