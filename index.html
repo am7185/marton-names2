@@ -628,10 +628,13 @@ details.branch.hidden{display:none}
   font-family:'Assistant',sans-serif;font-size:13px;border:1px solid var(--line);
   border-radius:8px;padding:6px 9px;background:var(--card);color:var(--ink);width:100%;box-sizing:border-box;
 }
-.greet-form button{
+.greet-form-actions{display:flex;gap:6px}
+.greet-form-actions button{
   font-family:'Assistant',sans-serif;font-size:13px;font-weight:700;
-  background:var(--accent);color:#fff;border:none;border-radius:8px;padding:6px 9px;cursor:pointer;
+  border:none;border-radius:8px;padding:6px 9px;cursor:pointer;flex:1;
 }
+.greet-form-actions button[type="submit"]{background:var(--accent);color:#fff}
+.greet-wa-btn{background:#25D366;color:#fff}
 .greet-form button:disabled{opacity:.6;cursor:default}
 .ev-empty{text-align:center;color:var(--muted);font-size:15.5px;padding:24px 10px}
 
@@ -1775,8 +1778,9 @@ function savedGreeterName(){
   try{ return localStorage.getItem('martonGreeterName') || ''; }catch(e){ return ''; }
 }
 
-/* חלונית "כתבו ברכה" — מוצגת רק כשמחוברים לגיליון החי (יש id אמיתי לכתוב אליו) */
-function greetBlockHTML(id){
+/* חלונית "כתבו ברכה" — מוצגת רק כשמחוברים לגיליון החי (יש id אמיתי לכתוב אליו)
+   personLabel — שם התצוגה של מי שהברכה מיועדת לו, לצורך הודעת הוואטסאפ */
+function greetBlockHTML(id, personLabel){
   if(!editMode || id==null) return '';
   const pkey = esc(String(id));
   const list = greetingsFor(id);
@@ -1787,10 +1791,13 @@ function greetBlockHTML(id){
     <button type="button" class="greet-toggle" data-pkey="${pkey}">💬 ברכות (${list.length})</button>
     <div class="greet-panel hidden" id="greetPanel-${pkey}">
       <div class="greet-list">${listHTML}</div>
-      <form class="greet-form" data-pkey="${pkey}">
+      <form class="greet-form" data-pkey="${pkey}" data-name="${esc(personLabel || '')}">
         <input type="text" class="greet-name-input" placeholder="השם שלך" maxlength="40" value="${esc(savedGreeterName())}" required>
         <input type="text" class="greet-msg-input" placeholder="כתבו ברכה..." maxlength="200" required>
-        <button type="submit">שליחה</button>
+        <div class="greet-form-actions">
+          <button type="submit">שליחה</button>
+          <button type="button" class="greet-wa-btn">📤 גם בוואטסאפ</button>
+        </div>
       </form>
     </div>
   </span>`;
@@ -1803,6 +1810,22 @@ document.getElementById('panel-events').addEventListener('click', e=>{
   if(toggle){
     const panel = document.getElementById('greetPanel-' + toggle.dataset.pkey);
     if(panel) panel.classList.toggle('hidden');
+    return;
+  }
+  /* שיתוף הברכה שכתובה כרגע בטופס (גם אם עוד לא נשלחה לאתר) ישירות דרך וואטסאפ */
+  const waBtn = e.target.closest('.greet-wa-btn');
+  if(waBtn){
+    const form = waBtn.closest('.greet-form');
+    const name = form.querySelector('.greet-name-input').value.trim();
+    const message = form.querySelector('.greet-msg-input').value.trim();
+    if(!message){ form.querySelector('.greet-msg-input').focus(); return; }
+    const personLabel = form.dataset.name || '';
+    const text = `💬 ברכה${personLabel ? ' ל' + personLabel : ''}: "${message}"${name ? ' — ' + name : ''}\n(מתוך אתר משפחת מרטון)`;
+    if(navigator.share){
+      navigator.share({text}).catch(()=>{});
+    } else {
+      window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank', 'noopener');
+    }
   }
 });
 document.getElementById('panel-events').addEventListener('submit', async e=>{
@@ -1949,7 +1972,7 @@ function buildEvents(){
         ${metaLine}
         <div class="today-actions">
           <button type="button" class="greet-btn" data-gidx="${gidx}">🎉 שלח ברכה</button>
-          ${greetBlockHTML(e.id)}
+          ${greetBlockHTML(e.id, displayName)}
         </div>
       </div>`;
     }).join('');
@@ -1996,7 +2019,7 @@ function buildEvents(){
         <div class="e-date">${esc(dateTxt)}</div>
         ${age}
         <button type="button" class="greet-btn" data-gidx="${gidx}">🎉 שלח ברכה</button>
-        ${greetBlockHTML(e.id)}
+        ${greetBlockHTML(e.id, displayName)}
       </div>`;
     }).join('');
   }
