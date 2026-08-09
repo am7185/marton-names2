@@ -1618,15 +1618,21 @@ function hebDateNow(){
 /* parent: שם ראש התא שאליו שייך הרישום (אביו/אמו), כדי לזהות בבירור מי זה
    כשיש כמה בני משפחה בעלי שם דומה בענפים שונים. לא מוצג לראשי הענפים עצמם
    (הם כבר מזוהים ברשימת ה-10 הענפים) — רק לצאצאיהם, "דור שני" ואילך. */
-function flatRows(p, out, fam, parentName, parentMale){
+function flatRows(p, out, fam, parentName, parentMale, branchFam){
   const f = famOf(p.n, fam);
+  /* branchFam = שם המשפחה של ראש הענף (אחד מ-10 הענפים) — קבוע לאורך כל הענף, לא משתנה
+     מדור לדור. בקריאה הראשונה (ראש ענף עצמו) branchFam עדיין undefined, ואז נקבע פעם
+     אחת ל-f שלו-עצמו וממשיך ללוות את כל צאצאיו כמו שהוא. */
+  if(branchFam === undefined) branchFam = f;
   const male = (' '+p.n+' ').includes(' בן ');
   /* "בנו/בתו של X" (X זכר) לעומת "בנה/בתה של X" (X נקבה) — "בן/בת" לפי מגדר האדם המוצג,
      והסיומת הרכושנית (ו="שלו"/ה="שלה") לפי מגדר X עצמו, לא לפי מגדר האדם המוצג.
-     שם המשפחה על X מוצג רק כשהוא שונה משם המשפחה של האדם המוצג עצמו (fam=שם המשפחה שירש
-     מ-X; אם f===fam סימן שלא שינה — אז X כבר "אותו שם משפחה" ואין טעם לחזור עליו) */
+     שם המשפחה על X מוצג רק כשהוא שונה משם המשפחה של **ראש הענף** (לא של ההורה המיידי!) —
+     כי ראש הענף הוא הזהות המוכרת/הידועה, וכל שינוי שם משפחה יחסית אליו הוא המידע החשוב.
+     השוואה מול ההורה המיידי הייתה מפספסת שינוי שקרה כמה דורות קודם (למשל נכדה שיורשת
+     שם משפחה שכבר שונה אצל אמה — עדיין צריך לדעת שזה שונה מהענף המקורי) */
   const relWord = parentName ? (male ? 'בנ' : 'בת') + (parentMale ? 'ו' : 'ה') : null;
-  const parentSuffix = (parentName && fam && f !== fam) ? ` ${fam}` : '';
+  const parentSuffix = (parentName && branchFam && f !== branchFam) ? ` ${branchFam}` : '';
   const parentLabel = relWord ? `${relWord} של ${parentName}${parentSuffix}` : null;
   out.push({n:p.n, nick:p.nick, d:p.d, dd:p.dd, fam:f, parent: parentLabel, id: p.id});
   /* בן/בת הזוג נישא/ה לתוך המשפחה — לא "בנו/בתו" של ההורים של השני, אלא נשוי/ה לבן/בת המשפחה עצמו/ה
@@ -1639,18 +1645,19 @@ function flatRows(p, out, fam, parentName, parentMale){
   /* השם שמועבר הלאה לילדים כ"הפניה להורה" — כינוי אם יש, אחרת שם פרטי בלבד (בלי שם משפחה;
      שם המשפחה מצטרף בזמן התצוגה למעלה, ורק אם צריך) */
   const nextParentName = p.nick || shortName(p.n);
-  (p.c||[]).forEach(k=>flatRows(k, out, f, nextParentName, male));
+  (p.c||[]).forEach(k=>flatRows(k, out, f, nextParentName, male, branchFam));
 }
 /* אוסף זוגות עם תאריך נישואין (לחלונית ימי הנישואין) */
-function flatCouples(p, out, fam, parentName, parentMale){
+function flatCouples(p, out, fam, parentName, parentMale, branchFam){
   const f = famOf(p.n, fam);
+  if(branchFam === undefined) branchFam = f;
   const male = (' '+p.n+' ').includes(' בן ');
   const relWord = parentName ? (male ? 'בנ' : 'בת') + (parentMale ? 'ו' : 'ה') : null;
-  const parentSuffix = (parentName && fam && f !== fam) ? ` ${fam}` : '';
+  const parentSuffix = (parentName && branchFam && f !== branchFam) ? ` ${branchFam}` : '';
   const parentLabel = relWord ? `${relWord} של ${parentName}${parentSuffix}` : null;
   if(p.s && p.an) out.push({n:p.n, nick:p.nick, sn:p.s.n, snick:p.s.nick, an:p.an, fam:f, parent: parentLabel, id: p.id});
   const nextParentName = p.nick || shortName(p.n);
-  (p.c||[]).forEach(k=>flatCouples(k, out, f, nextParentName, male));
+  (p.c||[]).forEach(k=>flatCouples(k, out, f, nextParentName, male, branchFam));
 }
 function buildPrintSheet(){
   let h = `<div class="p-stamp">עודכן: ${hebDateNow()}</div>
