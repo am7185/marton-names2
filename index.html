@@ -731,6 +731,7 @@ details.branch.hidden{display:none}
 }
 .tool-btn:hover{background:var(--accent-soft);color:var(--accent)}
 .tool-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tool-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
 
 .tree-viewport{
   position:relative;height:74vh;min-height:440px;
@@ -923,6 +924,7 @@ details.branch.hidden{display:none}
         <span class="sp"></span>
         <button class="tool-btn" id="treeOpenAll">פתח הכל</button>
         <button class="tool-btn" id="treeCloseAll">סגור הכל</button>
+        <button class="tool-btn" id="treeRotate" title="סובב תצוגה — נוח יותר בנייד">🔄 סובב</button>
         <button class="tool-btn" id="treeZoomIn">＋</button>
         <button class="tool-btn" id="treeZoomOut">－</button>
         <button class="tool-btn" id="treeFit">⤢</button>
@@ -2105,9 +2107,13 @@ document.getElementById('monthToday').addEventListener('click', ()=>{
 /* ---------- עץ המשפחה: דיאגרמה חזותית ---------- */
 const BRANCH_COLORS = ['#c0392b','#d68910','#1e8449','#2471a3','#8e44ad','#148f77','#d35400','#5d6d7e','#a93226','#7d3c98'];
 const CARD_W = 138, CARD_H = 62, GAP_X = 18, ROW_H = 108;
+const COL_W = 190; /* מרחק בין דורות בתצוגה מסובבת — רוחב הכרטיס + מקום לקו המחבר */
 const viewport = document.getElementById('treeViewport');
 const canvas = document.getElementById('treeCanvas');
 let tScale = 1, tX = 0, tY = 0, treeDragged = false;
+/* תצוגה מסובבת: דורות זורמים אופקית (שמאל→ימין) ואחים נערמים אנכית — נוח יותר לעץ
+   רחב על מסך טלפון צר, כי הציר הארוך של הטלפון מנוצל לרוחב העץ במקום לגובה שלו */
+let treeRotated = false;
 
 function shortName(n){
   return (n||'').split(' בן ')[0].split(' בת ')[0].replace(/\s*\([^)]+\)\s*$/,'').trim();
@@ -2150,17 +2156,21 @@ let maxDepthSeen = 0;
 function measure(node){
   const collapsed = !node.isRoot && collapsedIds.has(node.id);
   node._vis = (!collapsed && node.kids.length) ? node.kids : [];
+  /* "המידה הצולבת" של עלה — ברוחב (CARD_W) בתצוגה רגילה, בגובה (CARD_H) בתצוגה מסובבת,
+     כי בתצוגה מסובבת האחים נערמים אנכית ולא אופקית */
+  const base = treeRotated ? CARD_H : CARD_W;
   if(!node._vis.length){
-    node._w = CARD_W;
+    node._w = base;
   } else {
     let total = 0;
     node._vis.forEach((k,i)=>{ total += measure(k) + (i>0?GAP_X:0); });
-    node._w = Math.max(CARD_W, total);
+    node._w = Math.max(base, total);
   }
   return node._w;
 }
 function place(node, cx, depth){
-  node._x = cx; node._y = depth * ROW_H;
+  if(treeRotated){ node._x = depth * COL_W; node._y = cx; }
+  else { node._x = cx; node._y = depth * ROW_H; }
   maxDepthSeen = Math.max(maxDepthSeen, depth);
   if(node._vis.length){
     let cursor = cx - node._w/2;
@@ -2173,17 +2183,22 @@ function place(node, cx, depth){
 function collect(node, nodes, edges){
   nodes.push(node);
   node._vis.forEach(k=>{
-    edges.push({x1:node._x, y1:node._y+CARD_H, x2:k._x, y2:k._y, color:k.color});
+    if(treeRotated){
+      edges.push({x1:node._x+CARD_W, y1:node._y+CARD_H/2, x2:k._x, y2:k._y+CARD_H/2, color:k.color});
+    } else {
+      edges.push({x1:node._x, y1:node._y+CARD_H, x2:k._x, y2:k._y, color:k.color});
+    }
     collect(k, nodes, edges);
   });
 }
 function nodeHTML(n){
-  const left = n._x - CARD_W/2;
+  const left = treeRotated ? n._x : (n._x - CARD_W/2);
+  const top = treeRotated ? (n._y - CARD_H/2) : n._y;
   const hasKids = n.kids.length > 0;
   const isCollapsed = !n.isRoot && collapsedIds.has(n.id);
   const tip = `${n.full}${n.date?' — '+n.date:''}`;
   return `<div class="dnode${n.isRoot?' d-root':''}${hasKids?' has-kids':''}${hasKids&&!isCollapsed?' is-open':''}${matchedIds.has(n.id)?' d-match':''}"
-    data-id="${n.id}" style="left:${left}px;top:${n._y}px;width:${CARD_W}px;--bc:${n.color}" title="${esc(tip)}">
+    data-id="${n.id}" style="left:${left}px;top:${top}px;width:${CARD_W}px;--bc:${n.color}" title="${esc(tip)}">
     ${n.isRoot?'<span class="d-crown">🌳</span>':''}
     <span class="d-fam">${esc(n.fam)}</span>
     <div class="d-name">${esc(n.name)}</div>
@@ -2197,9 +2212,14 @@ function renderTree(){
   place(treeModel, treeModel._w/2, 0);
   const nodes = [], edges = [];
   collect(treeModel, nodes, edges);
-  const totalW = treeModel._w;
-  const totalH = (maxDepthSeen+1) * ROW_H + CARD_H + 24;
+  let totalW, totalH;
+  if(treeRotated){ totalW = (maxDepthSeen+1) * COL_W + CARD_W + 24; totalH = treeModel._w; }
+  else { totalW = treeModel._w; totalH = (maxDepthSeen+1) * ROW_H + CARD_H + 24; }
   const edgesSVG = edges.map(e=>{
+    if(treeRotated){
+      const midX = (e.x1 + e.x2) / 2;
+      return `<path d="M ${e.x1} ${e.y1} C ${midX} ${e.y1}, ${midX} ${e.y2}, ${e.x2} ${e.y2}" stroke="${e.color}" stroke-width="2" fill="none" opacity=".5"/>`;
+    }
     const midY = (e.y1 + e.y2) / 2;
     return `<path d="M ${e.x1} ${e.y1} C ${e.x1} ${midY}, ${e.x2} ${midY}, ${e.x2} ${e.y2}" stroke="${e.color}" stroke-width="2" fill="none" opacity=".5"/>`;
   }).join('');
@@ -2263,7 +2283,9 @@ document.getElementById('treeSearch').addEventListener('input', ()=>{
 /* --- גרירה + זום (לחיצה נקייה פותחת ענף; רק תזוזה אמיתית גוררת) --- */
 function applyTree(){ canvas.style.transform = `translate(${tX}px,${tY}px) scale(${tScale})`; }
 function fitTree(){
-  const w = treeModel._w, h = maxDepthSeen*ROW_H + CARD_H + 24;
+  let w, h;
+  if(treeRotated){ w = maxDepthSeen*COL_W + CARD_W + 24; h = treeModel._w; }
+  else { w = treeModel._w; h = maxDepthSeen*ROW_H + CARD_H + 24; }
   const vw = viewport.clientWidth, vh = viewport.clientHeight;
   if(!w || !vw) return;
   tScale = Math.min(vw/(w+40), vh/(h+40), 1.1);
@@ -2271,6 +2293,12 @@ function fitTree(){
   tY = 16;
   applyTree();
 }
+document.getElementById('treeRotate').onclick = function(){
+  treeRotated = !treeRotated;
+  this.classList.toggle('active', treeRotated);
+  renderTree();
+  fitTree();
+};
 let drag = null;
 viewport.addEventListener('pointerdown', e=>{
   drag = {x:e.clientX, y:e.clientY, tx:tX, ty:tY, id:e.pointerId, captured:false};
