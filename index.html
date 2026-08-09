@@ -1455,6 +1455,14 @@ function rowHTML(name, date, cls, rel, fam, death, editBtn){
 function editBtnHTML(p){
   return (editMode && p && p.id) ? `<button class="edit-dot" data-editid="${esc(String(p.id))}" title="עריכה / מחיקה" aria-label="עריכת שם זה">✎</button>` : '';
 }
+/* עיפרון עריכה מתוך כרטיסי אירועים — id עשוי להיות "5-s" (בן/בת זוג, אין לו שורת גיליון
+   נפרדת) ולכן חותכים את הסיומת בחזרה ל-ID האמיתי; העריכה תמיד נעשית על שורת האדם הראשי,
+   שם קיימים גם שדות בן/בת הזוג */
+function eventEditBtnHTML(id){
+  if(!editMode || id==null) return '';
+  const baseId = String(id).replace(/-s$/, '');
+  return `<button class="edit-dot" data-editid="${esc(baseId)}" title="עריכה / מחיקה" aria-label="עריכת שם זה">✎</button>`;
+}
 
 function kidHTML(p, fam){
   const f = famOf(p.n, fam);
@@ -1499,7 +1507,7 @@ function buildNamesTab(){
   branchesEl.innerHTML = BRANCHES.map((b,i) => {
     const bFam = famOf(b.n, FAMILY_ROOT);
     return `
-    <details class="branch"${i===0?' open':''} data-fam="${esc(bFam)}">
+    <details class="branch" data-fam="${esc(bFam)}">
       <summary>
         <span class="chev">◀</span>
         <span class="b-head">
@@ -1611,17 +1619,23 @@ function flatRows(p, out, fam, parentName, parentMale){
   const f = famOf(p.n, fam);
   const male = (' '+p.n+' ').includes(' בן ');
   /* "בנו/בתו של X" (X זכר) לעומת "בנה/בתה של X" (X נקבה) — "בן/בת" לפי מגדר האדם המוצג,
-     והסיומת הרכושנית (ו="שלו"/ה="שלה") לפי מגדר X עצמו, לא לפי מגדר האדם המוצג */
+     והסיומת הרכושנית (ו="שלו"/ה="שלה") לפי מגדר X עצמו, לא לפי מגדר האדם המוצג.
+     שם המשפחה על X מוצג רק כשהוא שונה משם המשפחה של האדם המוצג עצמו (fam=שם המשפחה שירש
+     מ-X; אם f===fam סימן שלא שינה — אז X כבר "אותו שם משפחה" ואין טעם לחזור עליו) */
   const relWord = parentName ? (male ? 'בנ' : 'בת') + (parentMale ? 'ו' : 'ה') : null;
-  const parentLabel = relWord ? `${relWord} של ${parentName}` : null;
+  const parentSuffix = (parentName && fam && f !== fam) ? ` ${fam}` : '';
+  const parentLabel = relWord ? `${relWord} של ${parentName}${parentSuffix}` : null;
   out.push({n:p.n, nick:p.nick, d:p.d, dd:p.dd, fam:f, parent: parentLabel, id: p.id});
   /* בן/בת הזוג נישא/ה לתוך המשפחה — לא "בנו/בתו" של ההורים של השני, אלא נשוי/ה לבן/בת המשפחה עצמו/ה
      אין להם שורת גיליון נפרדת (הם עמודות על אותה שורה) — מפתח מורכב לצורך ברכות */
   if(p.s){
-    const marriedLabel = p.s.r === 'אשתו' ? `נשואה ל${shortName(p.n)}` : p.s.r === 'בעלה' ? `נשוי ל${shortName(p.n)}` : `בן/בת זוגו/ה של ${shortName(p.n)}`;
+    const spouseRef = p.nick || shortName(p.n);
+    const marriedLabel = p.s.r === 'אשתו' ? `נשואה ל${spouseRef}` : p.s.r === 'בעלה' ? `נשוי ל${spouseRef}` : `בן/בת זוגו/ה של ${spouseRef}`;
     out.push({n:p.s.n, nick:p.s.nick, d:p.s.d, dd:p.s.dd, rel:p.s.r, fam:f, parent: marriedLabel, id: p.id!=null ? p.id+'-s' : null});
   }
-  const nextParentName = shortName(p.n) + (f ? ` ${f}` : '');
+  /* השם שמועבר הלאה לילדים כ"הפניה להורה" — כינוי אם יש, אחרת שם פרטי בלבד (בלי שם משפחה;
+     שם המשפחה מצטרף בזמן התצוגה למעלה, ורק אם צריך) */
+  const nextParentName = p.nick || shortName(p.n);
   (p.c||[]).forEach(k=>flatRows(k, out, f, nextParentName, male));
 }
 /* אוסף זוגות עם תאריך נישואין (לחלונית ימי הנישואין) */
@@ -1629,9 +1643,10 @@ function flatCouples(p, out, fam, parentName, parentMale){
   const f = famOf(p.n, fam);
   const male = (' '+p.n+' ').includes(' בן ');
   const relWord = parentName ? (male ? 'בנ' : 'בת') + (parentMale ? 'ו' : 'ה') : null;
-  const parentLabel = relWord ? `${relWord} של ${parentName}` : null;
-  if(p.s && p.an) out.push({n:p.n, nick:p.nick, sn:p.s.n, snick:p.s.nick, an:p.an, fam:f, parent: parentLabel});
-  const nextParentName = shortName(p.n) + (f ? ` ${f}` : '');
+  const parentSuffix = (parentName && fam && f !== fam) ? ` ${fam}` : '';
+  const parentLabel = relWord ? `${relWord} של ${parentName}${parentSuffix}` : null;
+  if(p.s && p.an) out.push({n:p.n, nick:p.nick, sn:p.s.n, snick:p.s.nick, an:p.an, fam:f, parent: parentLabel, id: p.id});
+  const nextParentName = p.nick || shortName(p.n);
   (p.c||[]).forEach(k=>flatCouples(k, out, f, nextParentName, male));
 }
 function buildPrintSheet(){
@@ -1903,18 +1918,31 @@ function buildEvents(){
   events.sort((a,b)=>a.h.day - b.h.day);
   greetTargets = [];
 
-  /* כרטיס "חוגגים היום" — רק בתצוגת החודש הנוכחי, ועם הגיל */
+  /* מחשבים גם את ימי הנישואין כאן (מוקדם), כדי שהיום-נישואין-היומי יוכל להצטרף
+     לכרטיס "חוגגים היום" יחד עם ימי ההולדת של היום — לא רק להופיע בחלונית הנפרדת למטה */
+  const couples = [];
+  if(MATRIARCH.s && MATRIARCH.an) couples.push({n:MATRIARCH.n, nick:MATRIARCH.nick, sn:MATRIARCH.s.n, snick:MATRIARCH.s.nick, an:MATRIARCH.an, fam:FAMILY_ROOT, id:MATRIARCH.id});
+  BRANCHES.forEach(b=>flatCouples(b, couples, FAMILY_ROOT));
+  const annivs = [];
+  couples.forEach(c=>{
+    const h = parseHebDate(c.an);
+    if(h && inCurrentMonth(h.month, viewMonth)) annivs.push({...c, h});
+  });
+  annivs.sort((a,b)=>a.h.day - b.h.day);
+
+  /* כרטיס "חוגגים היום" — רק בתצוגת החודש הנוכחי; כולל גם ימי הולדת וגם ימי נישואין של היום ביחד */
   const todayCard = document.getElementById('todayCard');
   const todayList = isCurrentMonthView ? events.filter(e=>e.h.day === curDay) : [];
-  if(todayList.length){
-    document.getElementById('todayContent').innerHTML = todayList.map(e=>{
-      const fam = e.n.includes('(') ? '' : ` <small style="font-weight:600;color:#ff9f43">(${esc(e.fam)})</small>`;
+  const todayAnnivs = isCurrentMonthView ? annivs.filter(e=>e.h.day === curDay) : [];
+  if(todayList.length || todayAnnivs.length){
+    const birthdayRows = todayList.map(e=>{
       const a = ageText(e);
       const male = (' '+e.n+' ').includes(' בן ');
-      const displayName = e.nick || e.n;
+      /* שם פרטי (או כינוי) + שם משפחה יחד בשורה אחת — בלי "בן/בת אמו" ובלי תגית "משפחת" נפרדת */
+      const displayName = (e.nick || shortName(e.n)) + (e.fam ? ` ${e.fam}` : '');
       const gidx = greetTargets.push({name: e.nick || shortName(e.n), age: yearsSince(e.h), male, fam: e.fam}) - 1;
-      /* הגיל צמוד לשם (שייך לחוגג/ת) ולא לשורת "נשוי/מבית" שאחריו, כדי שלא ייקרא כאילו הגיל שייך לבן/בת הזוג */
-      const nameLine = `${esc(displayName)}${fam}${a ? ` <span class="today-age">${esc(a)} 🎉</span>` : ''}`;
+      /* הגיל צמוד לשם (שייך לחוגג/ת) ולא לשורת "נשוי/בנו של" שאחריו, כדי שלא ייקרא כאילו הגיל שייך לבן/בת הזוג */
+      const nameLine = `🎂 ${esc(displayName)}${a ? ` <span class="today-age">${esc(a)} 🎉</span>` : ''} ${eventEditBtnHTML(e.id)}`;
       const metaLine = e.parent ? `<div class="today-meta-line">${esc(e.parent)}</div>` : '';
       return `<div class="today-row">
         <div class="today-name-line">${nameLine}</div>
@@ -1925,6 +1953,21 @@ function buildEvents(){
         </div>
       </div>`;
     }).join('');
+    const annivRows = todayAnnivs.map(e=>{
+      let years = '';
+      if(e.h.year){
+        const y = curYear - e.h.year;
+        if(y > 0 && y < 130) years = ` <span class="today-age">${y} שנות נישואין 🎉</span>`;
+      }
+      const nameSide = (e.nick || shortName(e.n)) + (e.fam ? ` ${e.fam}` : '');
+      const nameLine = `💍 ${esc(nameSide)} ♥ ${esc(e.snick || shortName(e.sn))}${years} ${eventEditBtnHTML(e.id)}`;
+      const metaLine = e.parent ? `<div class="today-meta-line">${esc(e.parent)}</div>` : '';
+      return `<div class="today-row">
+        <div class="today-name-line">${nameLine}</div>
+        ${metaLine}
+      </div>`;
+    }).join('');
+    document.getElementById('todayContent').innerHTML = birthdayRows + annivRows;
     todayCard.classList.remove('hidden');
   } else {
     todayCard.classList.add('hidden');
@@ -1944,12 +1987,11 @@ function buildEvents(){
       const dateTxt = e.d;   /* התאריך המלא — כולל שנת הלידה */
       const parentLine = e.parent ? `<div class="e-parent">${esc(e.parent)}</div>` : '';
       const male = (' '+e.n+' ').includes(' בן ');
-      const displayName = e.nick || e.n;
+      const displayName = (e.nick || shortName(e.n)) + (e.fam ? ` ${e.fam}` : '');
       const gidx = greetTargets.push({name: e.nick || shortName(e.n), age: yearsSince(e.h), male, fam: e.fam}) - 1;
       return `<div class="event-card${isToday?' is-today':''}">
         <div class="event-icon">${isToday?'🥳':emojis[i % emojis.length]}</div>
-        <span class="e-name">${esc(displayName)}</span>
-        <div class="e-fam">משפחת ${esc(e.fam)}</div>
+        <span class="e-name">${esc(displayName)} ${eventEditBtnHTML(e.id)}</span>
         ${parentLine}
         <div class="e-date">${esc(dateTxt)}</div>
         ${age}
@@ -1960,16 +2002,6 @@ function buildEvents(){
   }
 
   /* --- חלונית ימי נישואין --- */
-  const couples = [];
-  if(MATRIARCH.s && MATRIARCH.an) couples.push({n:MATRIARCH.n, nick:MATRIARCH.nick, sn:MATRIARCH.s.n, snick:MATRIARCH.s.nick, an:MATRIARCH.an, fam:FAMILY_ROOT});
-  BRANCHES.forEach(b=>flatCouples(b, couples, FAMILY_ROOT));
-
-  const annivs = [];
-  couples.forEach(c=>{
-    const h = parseHebDate(c.an);
-    if(h && inCurrentMonth(h.month, viewMonth)) annivs.push({...c, h});
-  });
-  annivs.sort((a,b)=>a.h.day - b.h.day);
   const annivList = document.getElementById('annivList');
   const annivEmpty = document.getElementById('annivEmpty');
   if(annivs.length){
@@ -1982,11 +2014,11 @@ function buildEvents(){
       }
       const dateTxt = e.an;   /* התאריך המלא — כולל שנת הנישואין */
       const parentLine = e.parent ? `<div class="anniv-parent">${esc(e.parent)}</div>` : '';
+      const nameSide = (e.nick || shortName(e.n)) + (e.fam ? ` ${e.fam}` : '');
       return `<div class="anniv-card${isToday?' is-today':''}">
         <span class="anniv-ring">${isToday?'🎊':'💍'}</span>
         <div class="anniv-info">
-          <div class="anniv-names">${esc(e.nick || shortName(e.n))} ♥ ${esc(e.snick || shortName(e.sn))}</div>
-          <div class="anniv-fam">משפחת ${esc(e.fam)}</div>
+          <div class="anniv-names">${esc(nameSide)} ♥ ${esc(e.snick || shortName(e.sn))} ${eventEditBtnHTML(e.id)}</div>
           ${parentLine}
           <div class="anniv-date">${esc(dateTxt)}${isToday?' · <span class="anniv-today-tag">היום</span>':''}</div>
           ${years}
@@ -2015,7 +2047,7 @@ function buildEvents(){
       return `<div class="memorial-card${isToday?' is-today':''}">
         <span class="memorial-flame">🕯️</span>
         <div class="memorial-info">
-          <div class="memorial-name">${esc(e.nick || e.n)}</div>
+          <div class="memorial-name">${esc((e.nick || shortName(e.n)) + (e.fam ? ` ${e.fam}` : ''))} ${eventEditBtnHTML(e.id)}</div>
           ${parentLine}
           <div class="memorial-date">${esc(e.dd.trim())}${isToday?' · <span class="memorial-today-tag">היום</span>':''}</div>
         </div>
@@ -2741,6 +2773,7 @@ function handleEditClick(e){
 }
 branchesEl.addEventListener('click', handleEditClick);
 document.getElementById('matriarchBox').addEventListener('click', handleEditClick);
+document.getElementById('panel-events').addEventListener('click', handleEditClick);
 
 async function sendSheetAction(payload){
   const res = await fetch(SHEET_JSON_URL, {
