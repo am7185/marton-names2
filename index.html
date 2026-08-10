@@ -597,15 +597,15 @@ details.branch.hidden{display:none}
 .e-parent{font-size:11.5px;color:var(--muted);font-style:italic;margin-bottom:6px}
 .today-row{padding:10px 0;display:flex;flex-direction:column;align-items:center;text-align:center}
 .today-row + .today-row{border-top:1px dashed var(--line);margin-top:6px}
+.bday-blessing{
+  margin-top:10px;padding:12px 16px;border-radius:12px;
+  background:var(--accent-soft);border:1px dashed var(--accent);
+  font-family:'Frank Ruhl Libre',serif;font-size:14px;line-height:1.7;color:var(--ink);
+  max-width:380px;
+}
+.bday-blessing div{margin:0}
 .today-actions{display:flex;align-items:center;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:8px}
 .today-actions .greet-wrap{width:auto;max-width:320px}
-.greet-btn{
-  font-family:'Assistant',sans-serif;font-size:12px;font-weight:700;
-  background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent);
-  border-radius:12px;padding:3px 11px;cursor:pointer;white-space:nowrap;
-}
-.greet-btn:hover{background:var(--accent);color:#fff}
-.event-card .greet-btn{margin-top:8px}
 .greet-wrap{display:inline-block;text-align:start;width:100%}
 .event-card .greet-wrap{margin-top:6px}
 .greet-toggle{
@@ -1747,19 +1747,6 @@ function inCurrentMonth(m, cur){
 /* ---------- בורר החודש ---------- */
 let viewMonth = null;   /* מפתח החודש המוצג; null = החודש הנוכחי */
 
-/* כפתורי "שלח ברכה" — נשמרים לפי אינדקס כדי לא להטמיע שם גולמי (עם גרשיים/גרשים) בתוך attribute ב-HTML */
-let greetTargets = [];
-function shareBirthdayGreeting(idx){
-  const t = greetTargets[idx];
-  if(!t) return;
-  const ageLine = t.age ? `מלאו ל${t.male?'ו':'ה'} ${t.age} שנים! ` : '';
-  const msg = `🎂 יום הולדת שמח ל${t.name}! ${ageLine}שיהיה במזל טוב, בשמחה ובריאות, ושנזכה לשמוח יחד תמיד! 🎉\n– משפחת ${t.fam || 'מרטון'}`;
-  if(navigator.share){
-    navigator.share({text: msg}).catch(()=>{});
-  } else {
-    window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank', 'noopener');
-  }
-}
 /* ---------- ברכות יום הולדת שנשארות באתר (גיליון "Greetings" נפרד) ---------- */
 /* מפתח → מערך ברכות. המפתח הוא ה-ID מהגיליון (או ID+"-s" לבן/בת זוג, שאין להם שורה נפרדת) */
 let GREETINGS = {};
@@ -1813,8 +1800,6 @@ function greetBlockHTML(id, personLabel){
 }
 
 document.getElementById('panel-events').addEventListener('click', e=>{
-  const shareBtn = e.target.closest('.greet-btn');
-  if(shareBtn){ shareBirthdayGreeting(Number(shareBtn.dataset.gidx)); return; }
   const toggle = e.target.closest('.greet-toggle');
   if(toggle){
     const panel = document.getElementById('greetPanel-' + toggle.dataset.pkey);
@@ -1948,7 +1933,6 @@ function buildEvents(){
     if(h && inCurrentMonth(h.month, viewMonth)) events.push({...p, h});
   });
   events.sort((a,b)=>a.h.day - b.h.day);
-  greetTargets = [];
 
   /* מחשבים גם את ימי הנישואין כאן (מוקדם), כדי שהיום-נישואין-היומי יוכל להצטרף
      לכרטיס "חוגגים היום" יחד עם ימי ההולדת של היום — לא רק להופיע בחלונית הנפרדת למטה */
@@ -1969,18 +1953,26 @@ function buildEvents(){
   if(todayList.length || todayAnnivs.length){
     const birthdayRows = todayList.map(e=>{
       const a = ageText(e);
-      const male = (' '+e.n+' ').includes(' בן ');
       /* שם פרטי (או כינוי) + שם משפחה יחד בשורה אחת — בלי "בן/בת אמו" ובלי תגית "משפחת" נפרדת */
       const displayName = (e.nick || shortName(e.n)) + (e.fam ? ` ${e.fam}` : '');
-      const gidx = greetTargets.push({name: e.nick || shortName(e.n), age: yearsSince(e.h), male, fam: e.fam}) - 1;
       /* הגיל צמוד לשם (שייך לחוגג/ת) ולא לשורת "נשוי/בנו של" שאחריו, כדי שלא ייקרא כאילו הגיל שייך לבן/בת הזוג */
       const nameLine = `🎂 ${esc(displayName)}${a ? ` <span class="today-age">${esc(a)} 🎉</span>` : ''} ${eventEditBtnHTML(e.id)}`;
       const metaLine = e.parent ? `<div class="today-meta-line">${esc(e.parent)}</div>` : '';
+      /* ברכת המשפחה הקבועה — מוצגת רק בכרטיס "חוגגים היום" (יום ההולדת של היום ממש), עם השם האישי/כינוי בפתיח */
+      const blessingName = e.nick || shortName(e.n);
+      const blessing = `<div class="bday-blessing">
+        <div>מזל טוב ${esc(blessingName)} ליום ההולדת</div>
+        <div>שתהי' שנת הצלחה, הן בגשמיות והן ברוחניות,</div>
+        <div>עמו"ש בבריאות ושמחה.</div>
+        <div>ימלא ה' משאלות ליבך לטובה ולברכה.</div>
+        <div>באהבה רבה</div>
+        <div>שבט המרטונים</div>
+      </div>`;
       return `<div class="today-row">
         <div class="today-name-line">${nameLine}</div>
         ${metaLine}
+        ${blessing}
         <div class="today-actions">
-          <button type="button" class="greet-btn" data-gidx="${gidx}">🎉 שלח ברכה</button>
           ${greetBlockHTML(e.id, displayName)}
         </div>
       </div>`;
@@ -2018,16 +2010,13 @@ function buildEvents(){
       const age = a ? `<div class="e-age">${esc(a)} 🎉</div>` : '';
       const dateTxt = e.d;   /* התאריך המלא — כולל שנת הלידה */
       const parentLine = e.parent ? `<div class="e-parent">${esc(e.parent)}</div>` : '';
-      const male = (' '+e.n+' ').includes(' בן ');
       const displayName = (e.nick || shortName(e.n)) + (e.fam ? ` ${e.fam}` : '');
-      const gidx = greetTargets.push({name: e.nick || shortName(e.n), age: yearsSince(e.h), male, fam: e.fam}) - 1;
       return `<div class="event-card${isToday?' is-today':''}">
         <div class="event-icon">${isToday?'🥳':emojis[i % emojis.length]}</div>
         <span class="e-name">${esc(displayName)} ${eventEditBtnHTML(e.id)}</span>
         ${parentLine}
         <div class="e-date">${esc(dateTxt)}</div>
         ${age}
-        <button type="button" class="greet-btn" data-gidx="${gidx}">🎉 שלח ברכה</button>
         ${greetBlockHTML(e.id, displayName)}
       </div>`;
     }).join('');
