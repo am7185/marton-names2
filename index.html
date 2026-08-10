@@ -1953,21 +1953,47 @@ function buildEvents(){
   if(todayList.length || todayAnnivs.length){
     const birthdayRows = todayList.map(e=>{
       const a = ageText(e);
+      const ageNum = yearsSince(e.h);
+      const male = (' '+e.n+' ').includes(' בן ');
       /* שם פרטי (או כינוי) + שם משפחה יחד בשורה אחת — בלי "בן/בת אמו" ובלי תגית "משפחת" נפרדת */
       const displayName = (e.nick || shortName(e.n)) + (e.fam ? ` ${e.fam}` : '');
       /* הגיל צמוד לשם (שייך לחוגג/ת) ולא לשורת "נשוי/בנו של" שאחריו, כדי שלא ייקרא כאילו הגיל שייך לבן/בת הזוג */
       const nameLine = `🎂 ${esc(displayName)}${a ? ` <span class="today-age">${esc(a)} 🎉</span>` : ''} ${eventEditBtnHTML(e.id)}`;
       const metaLine = e.parent ? `<div class="today-meta-line">${esc(e.parent)}</div>` : '';
-      /* ברכת המשפחה הקבועה — מוצגת רק בכרטיס "חוגגים היום" (יום ההולדת של היום ממש), עם השם האישי/כינוי בפתיח */
+      /* ברכת המשפחה — בגיל 13 (בן) בר מצווה, בגיל 12 (בת) בת מצווה, אחרת ברכת יום הולדת רגילה.
+         מוצגת רק בכרטיס "חוגגים היום" (יום ההולדת של היום ממש), עם השם האישי/כינוי בפתיח */
       const blessingName = e.nick || shortName(e.n);
-      const blessing = `<div class="bday-blessing">
-        <div>מזל טוב ${esc(blessingName)} ליום ההולדת</div>
-        <div>שתהי' שנת הצלחה, הן בגשמיות והן ברוחניות,</div>
-        <div>עמו"ש בבריאות ושמחה.</div>
-        <div>ימלא ה' משאלות ליבך לטובה ולברכה.</div>
-        <div>באהבה רבה</div>
-        <div>שבט המרטונים</div>
-      </div>`;
+      let blessingLines;
+      if(ageNum === 13 && male){
+        blessingLines = [
+          `מזל טוב ${esc(blessingName)} לבר המצווה! 🎉`,
+          'היום נעשית איש בישראל, מקבל עליך עול תורה ומצוות.',
+          'יהי רצון שתזכה להיות חסיד ירא שמיים ולמדן, ללכת תמיד בדרך אבותיך הקדושים,',
+          'מתוך שמחה וטוב לבב.',
+          'באהבה רבה',
+          'שבט המרטונים'
+        ];
+      } else if(ageNum === 12 && !male){
+        blessingLines = [
+          `מזל טוב ${esc(blessingName)} לבת המצווה! 🎉`,
+          'היום נעשית בת ישראל השלמה, מקבלת עליך עול תורה ומצוות.',
+          `יהי רצון שתגדלי להיות אשה יראת ה' ובעלת מידות תרומיות,`,
+          `הולכת בדרך אמותייך הצדקניות מתוך שמחה ואהבת ה',`,
+          'ותזכי לבנות בית נאמן בישראל מתוך שמחה וטוב לבב.',
+          'באהבה רבה',
+          'שבט המרטונים'
+        ];
+      } else {
+        blessingLines = [
+          `מזל טוב ${esc(blessingName)} ליום ההולדת`,
+          `שתהי' שנת הצלחה, הן בגשמיות והן ברוחניות,`,
+          'עמו"ש בבריאות ושמחה.',
+          `ימלא ה' משאלות ליבך לטובה ולברכה.`,
+          'באהבה רבה',
+          'שבט המרטונים'
+        ];
+      }
+      const blessing = `<div class="bday-blessing">${blessingLines.map(l=>`<div>${l}</div>`).join('')}</div>`;
       return `<div class="today-row">
         <div class="today-name-line">${nameLine}</div>
         ${metaLine}
