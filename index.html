@@ -497,6 +497,7 @@ details.branch.hidden{display:none}
   .tree-toolbar{gap:6px;margin:6px 2px 8px}
   .tool-btn{padding:5px 11px;font-size:13px}
 }
+
 .panel{display:none}
 .panel.active{display:block}
 .hidden{display:none!important}
@@ -821,6 +822,22 @@ details.branch.hidden{display:none}
   .p-row::before{content:"•";color:#c5a059;margin-left:6px}
   .p-row b{font-weight:700}
   .p-date{color:#444}
+}
+
+/* ---- מסך טלפון לרוחב (אחרי סיבוב מסך) — גובה זמין קטן, אז אסור לכפות min-height גדול
+   (כמו 440px של העץ ברירת המחדל) כי זה יגלוש מעבר לגובה המסך כולו. מיקום בסוף הקובץ
+   בכוונה — כדי לנצח בקסקדה מול ‎.tree-viewport‎ הבסיסי שמוגדר מוקדם יותר בלי media query */
+@media (orientation:landscape) and (max-height:500px){
+  .hero{padding:8px 16px 8px}
+  .hero .icon{font-size:20px}
+  .hero h1{font-size:16px;margin:2px 0 1px}
+  .hero h2{font-size:.78rem;margin-bottom:4px;letter-spacing:1.5px}
+  .status{padding:3px 12px;font-size:11.5px;margin-bottom:6px}
+  .sync-pill{margin:-4px 0 6px;font-size:10.5px}
+  .tabs-nav{padding:6px 8px;padding-top:calc(6px + env(safe-area-inset-top))}
+  .matriarch{margin:8px 0 4px;padding:8px 12px 6px}
+  .tree-viewport{height:80vh;min-height:200px}
+  .today-card{padding:14px}
 }
 </style>
 
