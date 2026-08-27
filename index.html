@@ -376,7 +376,11 @@ summary::-webkit-details-marker{display:none}
 summary:hover{background:var(--accent-soft)}
 details.branch{transition:box-shadow .25s, transform .25s}
 details.branch:has(summary:hover){box-shadow:0 10px 26px rgba(197,160,89,.28);transform:translateY(-1px)}
-@media (prefers-reduced-motion: reduce){details.branch{transition:none}}
+/* כניסה מדורגת של כרטיסים — משותפת לענפים/כרטיסי אירועים/צמתי עץ. var(--i) מוזרק ב-JS
+   לפי אינדקס; min() עוצר את ההשהיה אחרי כמה כרטיסים כדי שרשימות ארוכות לא יחכו לנצח */
+@keyframes cardIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+details.branch{animation:cardIn .5s cubic-bezier(.16,.8,.3,1) both;animation-delay:calc(min(var(--i,0),14) * 45ms)}
+@media (prefers-reduced-motion: reduce){details.branch{transition:none;animation:none}}
 .chev{
   flex-shrink:0;width:22px;height:22px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;
@@ -499,7 +503,9 @@ details.branch.hidden{display:none}
 }
 
 .panel{display:none}
-.panel.active{display:block}
+.panel.active{display:block;animation:panelIn .45s cubic-bezier(.16,.8,.3,1) both}
+@keyframes panelIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@media (prefers-reduced-motion: reduce){.panel.active{animation:none}}
 .hidden{display:none!important}
 
 /* ---- search highlight ---- */
@@ -576,8 +582,10 @@ details.branch.hidden{display:none}
   padding:16px 12px;display:flex;flex-direction:column;align-items:center;
   text-align:center;box-shadow:0 4px 15px rgba(0,0,0,.05);
   transition:all .3s cubic-bezier(.175,.885,.32,1.275);
+  animation:cardIn .5s cubic-bezier(.16,.8,.3,1) both;animation-delay:calc(min(var(--i,0),14) * 45ms);
 }
 .event-card:hover{transform:scale(1.03) rotate(1deg);border-color:#FF6B6B;box-shadow:0 10px 25px rgba(0,0,0,.1)}
+@media (prefers-reduced-motion: reduce){.event-card{animation:none}}
 .event-card.is-today{border-color:#FFD93D;box-shadow:0 6px 0 #FFD93D}
 .event-icon{
   font-size:30px;width:58px;height:58px;border-radius:50%;
@@ -661,7 +669,9 @@ details.branch.hidden{display:none}
   background:var(--card);border:1px solid var(--line);border-radius:14px;
   border-inline-start:3px solid #c98bb0;
   padding:12px 15px;display:flex;align-items:center;gap:10px;
+  animation:cardIn .5s cubic-bezier(.16,.8,.3,1) both;animation-delay:calc(min(var(--i,0),14) * 45ms);
 }
+@media (prefers-reduced-motion: reduce){.anniv-card{animation:none}}
 .anniv-card.is-today{border-inline-start-color:var(--accent);background:var(--accent-soft)}
 .anniv-ring{font-size:20px;flex-shrink:0}
 .anniv-info{min-width:0}
@@ -684,7 +694,11 @@ details.branch.hidden{display:none}
   background:var(--card);border:1px solid var(--line);border-radius:14px;
   border-inline-start:3px solid #7d6a4a;
   padding:12px 15px;display:flex;align-items:center;gap:10px;
+  /* דעיכה עדינה בלבד (בלי תנועה/קפיצה) — הקשר של יארצייט מחייב איפוק */
+  animation:memFadeIn .6s ease both;animation-delay:calc(min(var(--i,0),14) * 45ms);
 }
+@keyframes memFadeIn{from{opacity:0}to{opacity:1}}
+@media (prefers-reduced-motion: reduce){.memorial-card{animation:none}}
 .memorial-card.is-today{border-inline-start-color:var(--accent);background:var(--accent-soft)}
 .memorial-flame{font-size:20px;flex-shrink:0}
 .memorial-info{min-width:0}
@@ -756,7 +770,12 @@ details.branch.hidden{display:none}
   text-align:center;
   box-shadow:0 3px 10px rgba(26,42,58,.10);
   transition:transform .18s, box-shadow .18s;
+  /* "קפיצה" קלה בהופעה — עם overshoot, מתאים לאופי המשחקי של תרשים העץ.
+     left/top כבר קבועים ב-JS לפי המיקום הסופי, אז מסובבים רק scale/opacity ולא translate */
+  animation:nodePop .4s cubic-bezier(.34,1.56,.64,1) both;
 }
+@keyframes nodePop{from{opacity:0;transform:scale(.75)}to{opacity:1;transform:scale(1)}}
+@media (prefers-reduced-motion: reduce){.dnode{animation:none}}
 .dnode.has-kids{cursor:pointer}
 .dnode.has-kids:hover{
   transform:translateY(-3px);
@@ -1529,7 +1548,7 @@ function buildNamesTab(){
   branchesEl.innerHTML = BRANCHES.map((b,i) => {
     const bFam = famOf(b.n, FAMILY_ROOT);
     return `
-    <details class="branch" data-fam="${esc(bFam)}">
+    <details class="branch" data-fam="${esc(bFam)}" style="--i:${i}">
       <summary>
         <span class="chev">◀</span>
         <span class="b-head">
@@ -1763,6 +1782,7 @@ function inCurrentMonth(m, cur){
 }
 /* ---------- בורר החודש ---------- */
 let viewMonth = null;   /* מפתח החודש המוצג; null = החודש הנוכחי */
+let todayCelebrated = false;   /* זוהר החגיגה בכרטיס "חוגגים היום" — רק פעם אחת לסשן */
 
 /* ---------- ברכות יום הולדת שנשארות באתר (גיליון "Greetings" נפרד) ---------- */
 /* מפתח → מערך ברכות. המפתח הוא ה-ID מהגיליון (או ID+"-s" לבן/בת זוג, שאין להם שורה נפרדת) */
@@ -2026,8 +2046,10 @@ function buildEvents(){
         const y = curYear - e.h.year;
         if(y > 0 && y < 130) years = ` <span class="today-age">${y} שנות נישואין 🎉</span>`;
       }
-      const nameSide = (e.nick || shortName(e.n)) + (e.fam ? ` ${e.fam}` : '');
-      const nameLine = `💍 ${esc(nameSide)} ♥ ${esc(e.snick || shortName(e.sn))}${years} ${eventEditBtnHTML(e.id)}`;
+      /* שם המשפחה בסוף השורה, אחרי שני השמות — "ישראל ♥ תמר מנדלזון" ולא "ישראל מנדלזון ♥ תמר" */
+      const p1 = e.nick || shortName(e.n);
+      const p2 = e.snick || shortName(e.sn);
+      const nameLine = `💍 ${esc(p1)} ♥ ${esc(p2)}${e.fam ? ' ' + esc(e.fam) : ''}${years} ${eventEditBtnHTML(e.id)}`;
       const metaLine = e.parent ? `<div class="today-meta-line">${esc(e.parent)}</div>` : '';
       return `<div class="today-row">
         <div class="today-name-line">${nameLine}</div>
@@ -2036,6 +2058,11 @@ function buildEvents(){
     }).join('');
     document.getElementById('todayContent').innerHTML = birthdayRows + annivRows;
     todayCard.classList.remove('hidden');
+    /* זוהר חגיגי — פעם אחת בלבד לסשן, כדי שלא יחזור על עצמו בכל render (חיפוש, סנכרון וכו') */
+    if(!todayCelebrated){
+      todayCelebrated = true;
+      setTimeout(()=>sparkleBurst(todayCard), 350);
+    }
   } else {
     todayCard.classList.add('hidden');
   }
@@ -2054,7 +2081,7 @@ function buildEvents(){
       const dateTxt = e.d;   /* התאריך המלא — כולל שנת הלידה */
       const parentLine = e.parent ? `<div class="e-parent">${esc(e.parent)}</div>` : '';
       const displayName = (e.nick || shortName(e.n)) + (e.fam ? ` ${e.fam}` : '');
-      return `<div class="event-card${isToday?' is-today':''}">
+      return `<div class="event-card${isToday?' is-today':''}" style="--i:${i}">
         <div class="event-icon">${isToday?'🥳':emojis[i % emojis.length]}</div>
         <span class="e-name">${esc(displayName)} ${eventEditBtnHTML(e.id)}</span>
         ${parentLine}
@@ -2069,7 +2096,7 @@ function buildEvents(){
   const annivList = document.getElementById('annivList');
   const annivEmpty = document.getElementById('annivEmpty');
   if(annivs.length){
-    annivList.innerHTML = annivs.map(e=>{
+    annivList.innerHTML = annivs.map((e,i)=>{
       const isToday = isCurrentMonthView && e.h.day === curDay;
       let years = '';
       if(e.h.year){
@@ -2078,11 +2105,14 @@ function buildEvents(){
       }
       const dateTxt = e.an;   /* התאריך המלא — כולל שנת הנישואין */
       const parentLine = e.parent ? `<div class="anniv-parent">${esc(e.parent)}</div>` : '';
-      const nameSide = (e.nick || shortName(e.n)) + (e.fam ? ` ${e.fam}` : '');
-      return `<div class="anniv-card${isToday?' is-today':''}">
+      /* שם המשפחה בסוף השורה, אחרי שני השמות — "ישראל ♥ תמר מנדלזון" ולא "ישראל מנדלזון ♥ תמר" */
+      const p1 = e.nick || shortName(e.n);
+      const p2 = e.snick || shortName(e.sn);
+      const namesLine = `${esc(p1)} ♥ ${esc(p2)}${e.fam ? ' ' + esc(e.fam) : ''}`;
+      return `<div class="anniv-card${isToday?' is-today':''}" style="--i:${i}">
         <span class="anniv-ring">${isToday?'🎊':'💍'}</span>
         <div class="anniv-info">
-          <div class="anniv-names">${esc(nameSide)} ♥ ${esc(e.snick || shortName(e.sn))} ${eventEditBtnHTML(e.id)}</div>
+          <div class="anniv-names">${namesLine} ${eventEditBtnHTML(e.id)}</div>
           ${parentLine}
           <div class="anniv-date">${esc(dateTxt)}${isToday?' · <span class="anniv-today-tag">היום</span>':''}</div>
           ${years}
@@ -2105,10 +2135,10 @@ function buildEvents(){
   const memList = document.getElementById('memorialList');
   const memEmpty = document.getElementById('memEmpty');
   if(yahr.length){
-    memList.innerHTML = yahr.map(e=>{
+    memList.innerHTML = yahr.map((e,i)=>{
       const isToday = isCurrentMonthView && e.h.day === curDay;
       const parentLine = e.parent ? `<div class="memorial-parent">${esc(e.parent)}</div>` : '';
-      return `<div class="memorial-card${isToday?' is-today':''}">
+      return `<div class="memorial-card${isToday?' is-today':''}" style="--i:${i}">
         <span class="memorial-flame">🕯️</span>
         <div class="memorial-info">
           <div class="memorial-name">${esc((e.nick || shortName(e.n)) + (e.fam ? ` ${e.fam}` : ''))} ${eventEditBtnHTML(e.id)}</div>
