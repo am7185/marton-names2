@@ -414,7 +414,10 @@ details[open] .chev{transform:rotate(90deg)}
   flex-shrink:0;width:24px;height:24px;border-radius:50%;
   border:1px solid var(--line);background:var(--card);color:var(--muted);
   cursor:pointer;font-size:12px;line-height:1;
-  display:flex;align-items:center;justify-content:center;
+  /* inline-flex ולא flex: כשהעיפרון מוצמד בתוך טקסט (למשל שורת שמות), display:flex
+     היה יוצר שורה נפרדת בכפייה (בלוק) ומרחיק את מה שמתחתיו — inline-flex משמר את
+     המירכוז הפנימי של ה-✎ אבל משתתף כרגיל בזרימת הטקסט */
+  display:inline-flex;align-items:center;justify-content:center;
   opacity:.35;transition:opacity .15s, color .15s, background .15s;
 }
 .row:hover .edit-dot, .edit-dot:focus-visible{opacity:1}
