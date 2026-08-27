@@ -572,6 +572,7 @@ details.branch.hidden{display:none}
 .today-content{color:var(--ink)}
 .today-name-line{font-size:22px;font-weight:800;line-height:1.3}
 .today-meta-line{font-size:14px;font-weight:600;color:var(--muted);font-style:italic;margin-top:2px}
+.today-fam-line{font-size:15px;font-weight:700;color:var(--ink);text-align:center;margin-top:2px}
 .today-age{font-size:15px;font-weight:700;color:var(--accent);white-space:nowrap}
 .event-grid{
   display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
@@ -676,10 +677,7 @@ details.branch.hidden{display:none}
 .anniv-ring{font-size:20px;flex-shrink:0}
 .anniv-info{min-width:0}
 .anniv-names{font-weight:700;font-size:14.5px;color:var(--ink);line-height:1.3}
-.anniv-fam{
-  display:inline-block;font-size:11.5px;font-weight:700;color:var(--muted);
-  background:var(--pill);padding:1px 9px;border-radius:10px;margin-top:4px;
-}
+.anniv-fam-line{font-size:13px;font-weight:700;color:var(--ink);text-align:center;margin-top:2px}
 .anniv-parent{font-size:11px;color:var(--muted);font-style:italic;margin-top:2px}
 .anniv-date{font-size:12.5px;color:var(--muted);margin-top:3px}
 .anniv-years{font-size:11.5px;color:var(--accent);font-weight:700;margin-top:2px}
@@ -2046,13 +2044,15 @@ function buildEvents(){
         const y = curYear - e.h.year;
         if(y > 0 && y < 130) years = ` <span class="today-age">${y} שנות נישואין 🎉</span>`;
       }
-      /* שם המשפחה בסוף השורה, אחרי שני השמות — "ישראל ♥ תמר מנדלזון" ולא "ישראל מנדלזון ♥ תמר" */
+      /* שם המשפחה בשורה נפרדת, ממורכזת, מתחת לשני השמות — נגרר/נחתך כשהוא מוצמד לשורה ארוכה */
       const p1 = e.nick || shortName(e.n);
       const p2 = e.snick || shortName(e.sn);
-      const nameLine = `💍 ${esc(p1)} ♥ ${esc(p2)}${e.fam ? ' ' + esc(e.fam) : ''}${years} ${eventEditBtnHTML(e.id)}`;
+      const nameLine = `💍 ${esc(p1)} ♥ ${esc(p2)}${years} ${eventEditBtnHTML(e.id)}`;
+      const famLine = e.fam ? `<div class="today-fam-line">${esc(e.fam)}</div>` : '';
       const metaLine = e.parent ? `<div class="today-meta-line">${esc(e.parent)}</div>` : '';
       return `<div class="today-row">
         <div class="today-name-line">${nameLine}</div>
+        ${famLine}
         ${metaLine}
       </div>`;
     }).join('');
@@ -2105,14 +2105,16 @@ function buildEvents(){
       }
       const dateTxt = e.an;   /* התאריך המלא — כולל שנת הנישואין */
       const parentLine = e.parent ? `<div class="anniv-parent">${esc(e.parent)}</div>` : '';
-      /* שם המשפחה בסוף השורה, אחרי שני השמות — "ישראל ♥ תמר מנדלזון" ולא "ישראל מנדלזון ♥ תמר" */
+      /* שם המשפחה בשורה נפרדת, ממורכזת, מתחת לשני השמות — נגרר/נחתך כשהוא מוצמד לשורה ארוכה */
       const p1 = e.nick || shortName(e.n);
       const p2 = e.snick || shortName(e.sn);
-      const namesLine = `${esc(p1)} ♥ ${esc(p2)}${e.fam ? ' ' + esc(e.fam) : ''}`;
+      const namesLine = `${esc(p1)} ♥ ${esc(p2)}`;
+      const famLine = e.fam ? `<div class="anniv-fam-line">${esc(e.fam)}</div>` : '';
       return `<div class="anniv-card${isToday?' is-today':''}" style="--i:${i}">
         <span class="anniv-ring">${isToday?'🎊':'💍'}</span>
         <div class="anniv-info">
           <div class="anniv-names">${namesLine} ${eventEditBtnHTML(e.id)}</div>
+          ${famLine}
           ${parentLine}
           <div class="anniv-date">${esc(dateTxt)}${isToday?' · <span class="anniv-today-tag">היום</span>':''}</div>
           ${years}
