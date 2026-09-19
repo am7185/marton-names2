@@ -684,10 +684,11 @@ details.branch.hidden{display:none}
   font-family:'Assistant',sans-serif;font-size:13px;border:1px solid var(--line);
   border-radius:8px;padding:6px 9px;background:var(--card);color:var(--ink);width:100%;box-sizing:border-box;
 }
-.greet-form-actions{display:flex;gap:6px}
+.greet-form-actions{display:flex;flex-wrap:wrap;gap:6px}
 .greet-form-actions button{
   font-family:'Assistant',sans-serif;font-size:13px;font-weight:700;
-  border:none;border-radius:8px;padding:6px 9px;cursor:pointer;flex:1;
+  border:none;border-radius:8px;padding:7px 9px;cursor:pointer;
+  flex:1 1 90px;white-space:nowrap;
 }
 .greet-form-actions button[type="submit"]{background:var(--accent);color:#fff}
 .greet-wa-btn{background:#25D366;color:#fff}
@@ -1926,7 +1927,7 @@ function greetBlockHTML(id, personLabel){
         <input type="text" class="greet-msg-input" placeholder="כתבו ברכה..." maxlength="200" required>
         <div class="greet-form-actions">
           <button type="submit">שליחה</button>
-          <button type="button" class="greet-wa-btn">📤 גם בוואטסאפ</button>
+          <button type="button" class="greet-wa-btn">📤 וואטסאפ</button>
         </div>
       </form>
     </div>
