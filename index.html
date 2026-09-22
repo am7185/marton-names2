@@ -537,9 +537,17 @@ details.branch.hidden{display:none}
   .tool-btn{padding:5px 11px;font-size:13px}
 }
 
-.panel{display:none}
-.panel.active{display:block;animation:panelIn .3s cubic-bezier(.16,.8,.3,1) both}
-@keyframes panelIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+/* דף גלילה אחת: כל הקטעים גלויים תמיד ומסודרים זה מתחת לזה — scroll-margin-top
+   משאיר מקום לניווט הדביק כשקופצים לקטע (בלחיצה על הטאב או ניווט מקלדת/עוגן) */
+.panel{display:block;scroll-margin-top:80px}
+@media (max-width:600px){.panel{scroll-margin-top:62px}}
+/* אירועים/עץ נחשפים בעדינות כשמגיעים אליהם בגלילה (ר' revealObserver ב-JS).
+   קטע השמות תמיד גלוי מיד — יש לו כבר את אנימציית ה-hero המובנית שלו */
+#panel-events,#panel-tree{
+  opacity:0;transform:translateY(24px);
+  transition:opacity .6s cubic-bezier(.16,.8,.3,1), transform .6s cubic-bezier(.16,.8,.3,1);
+}
+#panel-events.in-view,#panel-tree.in-view{opacity:1;transform:translateY(0)}
 .hidden{display:none!important}
 
 /* ---- search highlight ---- */
@@ -771,6 +779,14 @@ details.branch.hidden{display:none}
 }
 
 /* ---- עץ המשפחה: דיאגרמה חזותית ---- */
+#panel-tree{background:radial-gradient(ellipse 900px 420px at 50% 0%, var(--accent-soft), transparent 70%)}
+.tree-head{text-align:center;margin:34px 0 6px;padding:0 10px}
+.tree-top{
+  display:block;font-size:24px;font-weight:700;
+  font-family:'Frank Ruhl Libre',serif;
+  background:linear-gradient(135deg,var(--btn-bg),var(--accent));
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
 .wrap-wide{max-width:1160px;margin:0 auto;padding:18px 14px 46px}
 .tree-toolbar{
   display:flex;align-items:center;gap:8px;flex-wrap:wrap;
@@ -923,7 +939,7 @@ details.branch.hidden{display:none}
    המקום שהם מוגדרים בו — יש שם כבר reduced-motion משלהם, קצר ומקומי, אין טעם לאחד גם אותם */
 @media (prefers-reduced-motion: reduce){
   details.branch{transition:none;animation:none}
-  .panel.active{animation:none}
+  #panel-events,#panel-tree{opacity:1;transform:none;transition:none}
   .event-card,.tab-btn{transition:none}
   .event-card{animation:none}
   .anniv-card{animation:none}
@@ -1033,6 +1049,9 @@ details.branch.hidden{display:none}
 
   <div class="panel" id="panel-tree">
     <div class="wrap-wide">
+      <div class="tree-head">
+        <span class="tree-top">🌳 עץ המשפחה</span>
+      </div>
       <div class="tree-toolbar">
         <input class="tree-search" id="treeSearch" type="search" placeholder="🔍 חיפוש בעץ..." aria-label="חיפוש בעץ">
         <span class="tree-hint tree-hint-wide">גרירה להזזה · גלגלת/כפתורים לזום</span>
@@ -1800,8 +1819,8 @@ document.getElementById('printBtn').addEventListener('click', ()=>{
   window.print();
 });
 
-/* ---------- tabs ---------- */
-const TABS = [['tabBtnNames','panel-names'],['tabBtnEvents','panel-events'],['tabBtnTree','panel-tree']];
+/* ---------- ניווט: דף גלילה אחת, עם ניווט דביק שקופץ לקטעים ומעקב גלילה (scroll-spy) ---------- */
+const SECTIONS = [['tabBtnNames','panel-names'],['tabBtnEvents','panel-events'],['tabBtnTree','panel-tree']];
 const tabIndicator = document.getElementById('tabIndicator');
 const tabsNav = document.querySelector('.tabs-nav');
 function positionTabIndicator(instant){
@@ -1816,17 +1835,39 @@ function positionTabIndicator(instant){
   tabIndicator.style.height = btnRect.height + 'px';
   if(instant) requestAnimationFrame(()=>{ tabIndicator.style.transition=''; });
 }
-TABS.forEach(([btnId, panelId])=>{
+SECTIONS.forEach(([btnId, panelId])=>{
   document.getElementById(btnId).onclick = ()=>{
-    TABS.forEach(([b,p])=>{
-      document.getElementById(b).classList.toggle('active', b===btnId);
-      document.getElementById(p).classList.toggle('active', p===panelId);
-    });
-    positionTabIndicator();
+    document.getElementById(panelId).scrollIntoView({behavior:'smooth', block:'start'});
   };
 });
 positionTabIndicator(true);
 window.addEventListener('resize', ()=>positionTabIndicator(true));
+
+/* מעקב גלילה: מסמן את הכפתור של הקטע שנמצא כרגע ב"רצועת הגילוי" סביב אמצע המסך —
+   לא מחכים לקטע שלם בתוך התצוגה (קטעים ארוכים מעץ/רשימת שמות לעולם לא ייכנסו כולם יחד) */
+const spyObserver = new IntersectionObserver((entries)=>{
+  entries.forEach(entry=>{
+    if(!entry.isIntersecting) return;
+    const activeId = entry.target.id;
+    SECTIONS.forEach(([b,p])=>{
+      document.getElementById(b).classList.toggle('active', p===activeId);
+    });
+    positionTabIndicator();
+  });
+}, {rootMargin:'-45% 0px -45% 0px', threshold:0});
+SECTIONS.forEach(([,p])=>spyObserver.observe(document.getElementById(p)));
+
+/* חשיפה עדינה בגלילה — קטעי אירועים/עץ מופיעים כשמגיעים אליהם לראשונה.
+   קטע השמות תמיד גלוי מיד (יש לו כבר אנימציית hero משלו), לא נכנס למנגנון הזה */
+const revealObserver = new IntersectionObserver((entries)=>{
+  entries.forEach(entry=>{
+    if(entry.isIntersecting){
+      entry.target.classList.add('in-view');
+      revealObserver.unobserve(entry.target);
+    }
+  });
+}, {threshold:0.08});
+['panel-events','panel-tree'].forEach(id=>revealObserver.observe(document.getElementById(id)));
 
 /* ---------- אירועי החודש ---------- */
 /* ערך גימטרי של מחרוזת (יום או שנה) */
@@ -2517,11 +2558,6 @@ document.getElementById('treeZoomIn').onclick = ()=>zoomTree(1.25);
 document.getElementById('treeZoomOut').onclick = ()=>zoomTree(0.8);
 document.getElementById('treeFit').onclick = fitTree;
 
-let treeFitted = false;
-document.getElementById('tabBtnTree').addEventListener('click', ()=>{
-  if(!treeFitted){ fitTree(); treeFitted = true; }
-});
-
 /* ---------- הרכבת כל הדף מחדש (בטעינה, ושוב אחרי סנכרון עם הגיליון) ---------- */
 function renderAll(){
   const s = document.getElementById('search');
@@ -2532,6 +2568,12 @@ function renderAll(){
   buildEvents();
 }
 renderAll();
+
+/* התאמת זום ראשונית לעץ — פעם אחת בלבד. בעבר זה קרה רק בלחיצה על טאב העץ (כי הוא
+   היה display:none עד אז, אי אפשר למדוד רוחב/גובה של אלמנט מוסתר); עכשיו כשהדף
+   גלילה אחת וכל הקטעים גלויים תמיד, אפשר למדוד ולהתאים מיד אחרי הרינדור הראשוני */
+let treeFitted = false;
+requestAnimationFrame(()=>{ if(!treeFitted){ fitTree(); treeFitted = true; } });
 
 /* ---------- שדה כוכבים אנימטיבי בכותרת ("והיו בניך ככוכבי השמים") ---------- */
 (function initStarfield(){
