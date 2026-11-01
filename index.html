@@ -483,12 +483,6 @@ details.branch.hidden{display:none}
   border-bottom:1px solid var(--line);
   position:sticky;top:0;z-index:100;
 }
-.scroll-progress{
-  position:absolute;right:0;bottom:0;height:3px;width:100%;
-  background:linear-gradient(to left,var(--accent),var(--btn-bg));
-  transform:scaleX(0);transform-origin:right center;
-  z-index:2;pointer-events:none;
-}
 .tab-indicator{
   position:absolute;background:var(--btn-bg);border-radius:50px;
   box-shadow:0 4px 12px rgba(18,41,31,.2);
@@ -551,17 +545,9 @@ details.branch.hidden{display:none}
   .tool-btn{padding:5px 11px;font-size:13px}
 }
 
-/* דף גלילה אחת: כל הקטעים גלויים תמיד ומסודרים זה מתחת לזה — scroll-margin-top
-   משאיר מקום לניווט הדביק כשקופצים לקטע (בלחיצה על הטאב או ניווט מקלדת/עוגן) */
-.panel{display:block;scroll-margin-top:80px}
-@media (max-width:600px){.panel{scroll-margin-top:62px}}
-/* אירועים/עץ נחשפים בעדינות כשמגיעים אליהם בגלילה (ר' revealObserver ב-JS).
-   קטע השמות תמיד גלוי מיד — יש לו כבר את אנימציית ה-hero המובנית שלו */
-#panel-events,#panel-tree{
-  opacity:0;transform:translateY(24px);
-  transition:opacity .6s cubic-bezier(.16,.8,.3,1), transform .6s cubic-bezier(.16,.8,.3,1);
-}
-#panel-events.in-view,#panel-tree.in-view{opacity:1;transform:translateY(0)}
+.panel{display:none}
+.panel.active{display:block;animation:panelIn .3s cubic-bezier(.16,.8,.3,1) both}
+@keyframes panelIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 .hidden{display:none!important}
 
 /* ---- search highlight ---- */
@@ -953,7 +939,7 @@ details.branch.hidden{display:none}
    המקום שהם מוגדרים בו — יש שם כבר reduced-motion משלהם, קצר ומקומי, אין טעם לאחד גם אותם */
 @media (prefers-reduced-motion: reduce){
   details.branch{transition:none;animation:none}
-  #panel-events,#panel-tree{opacity:1;transform:none;transition:none}
+  .panel.active{animation:none}
   .event-card,.tab-btn{transition:none}
   .event-card{animation:none}
   .anniv-card{animation:none}
@@ -973,7 +959,6 @@ details.branch.hidden{display:none}
 
 <div class="app">
   <nav class="tabs-nav" aria-label="ניווט ראשי">
-    <span class="scroll-progress" id="scrollProgress" aria-hidden="true"></span>
     <span class="tab-indicator" id="tabIndicator" aria-hidden="true"></span>
     <button class="tab-btn active" id="tabBtnNames"><span>📜</span> <span class="tab-full">שמות המשפחה</span><span class="tab-short">שמות</span></button>
     <button class="tab-btn" id="tabBtnEvents"><span>🎂</span> <span class="tab-full">אירועי החודש</span><span class="tab-short">אירועים</span></button>
@@ -1836,8 +1821,8 @@ document.getElementById('printBtn').addEventListener('click', ()=>{
   window.print();
 });
 
-/* ---------- ניווט: דף גלילה אחת, עם ניווט דביק שקופץ לקטעים ומעקב גלילה (scroll-spy) ---------- */
-const SECTIONS = [['tabBtnNames','panel-names'],['tabBtnEvents','panel-events'],['tabBtnTree','panel-tree']];
+/* ---------- tabs ---------- */
+const TABS = [['tabBtnNames','panel-names'],['tabBtnEvents','panel-events'],['tabBtnTree','panel-tree']];
 const tabIndicator = document.getElementById('tabIndicator');
 const tabsNav = document.querySelector('.tabs-nav');
 function positionTabIndicator(instant){
@@ -1852,55 +1837,17 @@ function positionTabIndicator(instant){
   tabIndicator.style.height = btnRect.height + 'px';
   if(instant) requestAnimationFrame(()=>{ tabIndicator.style.transition=''; });
 }
-SECTIONS.forEach(([btnId, panelId])=>{
+TABS.forEach(([btnId, panelId])=>{
   document.getElementById(btnId).onclick = ()=>{
-    document.getElementById(panelId).scrollIntoView({behavior:'smooth', block:'start'});
+    TABS.forEach(([b,p])=>{
+      document.getElementById(b).classList.toggle('active', b===btnId);
+      document.getElementById(p).classList.toggle('active', p===panelId);
+    });
+    positionTabIndicator();
   };
 });
 positionTabIndicator(true);
 window.addEventListener('resize', ()=>positionTabIndicator(true));
-
-/* מעקב גלילה: מסמן את הכפתור של הקטע שנמצא כרגע ב"רצועת הגילוי" סביב אמצע המסך —
-   לא מחכים לקטע שלם בתוך התצוגה (קטעים ארוכים מעץ/רשימת שמות לעולם לא ייכנסו כולם יחד) */
-const spyObserver = new IntersectionObserver((entries)=>{
-  entries.forEach(entry=>{
-    if(!entry.isIntersecting) return;
-    const activeId = entry.target.id;
-    SECTIONS.forEach(([b,p])=>{
-      document.getElementById(b).classList.toggle('active', p===activeId);
-    });
-    positionTabIndicator();
-  });
-}, {rootMargin:'-45% 0px -45% 0px', threshold:0});
-SECTIONS.forEach(([,p])=>spyObserver.observe(document.getElementById(p)));
-
-/* חשיפה עדינה בגלילה — קטעי אירועים/עץ מופיעים כשמגיעים אליהם לראשונה.
-   קטע השמות תמיד גלוי מיד (יש לו כבר אנימציית hero משלו), לא נכנס למנגנון הזה */
-const revealObserver = new IntersectionObserver((entries)=>{
-  entries.forEach(entry=>{
-    if(entry.isIntersecting){
-      entry.target.classList.add('in-view');
-      revealObserver.unobserve(entry.target);
-    }
-  });
-}, {threshold:0.08});
-['panel-events','panel-tree'].forEach(id=>revealObserver.observe(document.getElementById(id)));
-
-/* פס התקדמות גלילה — כמה מהדף כבר נגלל, מוצג כקו דק על הניווט הדביק.
-   נמדד ב-rAF (לא ישירות ב-scroll) כדי לא להריץ חישוב פריסה בכל אירוע גלילה */
-const scrollProgress = document.getElementById('scrollProgress');
-let scrollTicking = false;
-function updateScrollProgress(){
-  const doc = document.documentElement;
-  const max = doc.scrollHeight - doc.clientHeight;
-  const pct = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
-  scrollProgress.style.transform = `scaleX(${pct})`;
-  scrollTicking = false;
-}
-window.addEventListener('scroll', ()=>{
-  if(!scrollTicking){ requestAnimationFrame(updateScrollProgress); scrollTicking = true; }
-}, {passive:true});
-updateScrollProgress();
 
 /* זוהר עוקב-עכבר ב-hero — עדכון משתני CSS --mx/--my ביחס למיקום הסמן בתוך הכרטיס.
    throttled ב-rAF; רק כשהעכבר בפועל מעל ה-hero (הרשמה/הסרה בכניסה/יציאה, לא global) */
@@ -2643,11 +2590,11 @@ function renderAll(){
 }
 renderAll();
 
-/* התאמת זום ראשונית לעץ — פעם אחת בלבד. בעבר זה קרה רק בלחיצה על טאב העץ (כי הוא
-   היה display:none עד אז, אי אפשר למדוד רוחב/גובה של אלמנט מוסתר); עכשיו כשהדף
-   גלילה אחת וכל הקטעים גלויים תמיד, אפשר למדוד ולהתאים מיד אחרי הרינדור הראשוני */
+/* זום ראשוני לעץ — רק בפתיחה ראשונה של טאב העץ (עד אז הוא display:none ואי אפשר למדוד אותו) */
 let treeFitted = false;
-requestAnimationFrame(()=>{ if(!treeFitted){ fitTree(); treeFitted = true; } });
+document.getElementById('tabBtnTree').addEventListener('click', ()=>{
+  if(!treeFitted){ fitTree(); treeFitted = true; }
+});
 
 /* ---------- שדה כוכבים אנימטיבי בכותרת ("והיו בניך ככוכבי השמים") ---------- */
 (function initStarfield(){
