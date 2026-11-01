@@ -2067,7 +2067,8 @@ function parseHebDate(d){
   const tokens = d.trim().split(/\s+/);
   if(tokens.length < 2) return null;
   const dayTok = tokens[0].replace(/["'׳״.]/g,'');
-  const day = (dayTok === 'רח') ? 1 : gemVal(dayTok);
+  /* 'טוב' (כך נכתב ע"י תיקון אוטומטי של ט"ו) = 15 */
+  const day = (dayTok === 'רח') ? 1 : (dayTok === 'טוב' ? 15 : gemVal(dayTok));
   let rest = tokens.slice(1);
   let year = null;
   const lastClean = rest[rest.length-1].replace(/["'׳״.]/g,'');
