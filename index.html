@@ -1023,6 +1023,48 @@ summary:hover{background:rgba(255,217,61,.35)}
 .modal-card{border:3px solid #12291f;box-shadow:8px 8px 0 #12291f;border-radius:20px}
 .install-banner{border:3px solid #12291f;box-shadow:4px 4px 0 #12291f}
 @media (prefers-reduced-motion: reduce){.ticker-track{animation:none}}
+/* ================= דינמיות ================= */
+.ticker{cursor:pointer}
+.ticker:hover .ticker-track{animation-play-state:paused}
+.ticker-track{animation-duration:var(--dur,32s)}
+#panel-events{position:relative;overflow-x:clip}
+#panel-events .wrap{position:relative;z-index:1}
+.ev-floats{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.ev-float{position:absolute;bottom:-6%;opacity:.55;animation:floatUp 28s linear infinite}
+@keyframes floatUp{0%{bottom:-6%;rotate:0deg;translate:0 0}50%{translate:26px 0}100%{bottom:104%;rotate:340deg;translate:-14px 0}}
+.event-grid{grid-auto-flow:dense;gap:18px}
+.event-card:nth-child(6n+1),.event-card.is-today{
+  grid-column:span 2;display:grid;grid-template-columns:auto 1fr;column-gap:16px;align-items:center;text-align:start;justify-items:start;
+}
+.event-card:nth-child(6n+1) > :not(.event-icon),.event-card.is-today > :not(.event-icon){grid-column:2}
+.event-card:nth-child(6n+1) .event-icon,.event-card.is-today .event-icon{grid-row:1 / span 8;grid-column:1;width:84px;height:84px;font-size:46px;margin:0}
+.event-card{position:relative;cursor:pointer;transition:translate .2s ease-out,rotate .2s ease-out,box-shadow .2s ease-out,background .2s}
+.event-card:hover{rotate:0deg;translate:-3px -4px;box-shadow:9px 9px 0 #12291f}
+.event-card:active{translate:2px 2px;box-shadow:2px 2px 0 #12291f}
+.event-icon{animation:iconBob 3.2s ease-in-out infinite;animation-delay:calc(var(--i,0) * -.45s)}
+@keyframes iconBob{0%,100%{translate:0 0;rotate:0deg}50%{translate:0 -6px;rotate:7deg}}
+.event-card:hover .event-icon{animation:iconSpin .6s ease-out}
+@keyframes iconSpin{to{rotate:360deg;scale:1.15}}
+.event-card.is-today .event-icon{animation:iconBob 1.2s ease-in-out infinite}
+.today-card{animation:todayGlow 2.4s ease-in-out infinite}
+@keyframes todayGlow{50%{box-shadow:8px 8px 0 #12291f,0 0 0 9px rgba(255,217,61,.6)}}
+.e-countdown,.anniv-countdown,.memorial-countdown{display:inline-block;background:#fff;border:2px solid #12291f;border-radius:999px;padding:1px 11px;font-size:12px}
+.e-countdown.soon,.anniv-countdown.soon,.memorial-countdown.soon{background:var(--pop-coral);animation:soonPulse 1.1s ease-in-out infinite}
+@keyframes soonPulse{50%{scale:1.14}}
+.anniv-card,.memorial-card{cursor:pointer;transition:translate .2s ease-out,box-shadow .2s ease-out}
+.anniv-card:hover,.memorial-card:hover{translate:-3px -3px;box-shadow:7px 7px 0 #12291f}
+.anniv-ring{animation:iconBob 3.6s ease-in-out infinite}
+.bsd{animation:stickerWiggle 3.5s ease-in-out infinite}
+@keyframes stickerWiggle{0%,100%{rotate:0deg}50%{rotate:6deg}}
+.tab-btn.active > span:first-child{display:inline-block;animation:tabPop .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes tabPop{from{scale:.4;rotate:-40deg}to{scale:1;rotate:0deg}}
+.b-avatar{transition:rotate .25s ease-out,scale .25s ease-out}
+summary:hover .b-avatar{rotate:-8deg;scale:1.1}
+@media (prefers-reduced-motion: reduce){
+  .ev-float,.event-icon,.today-card,.e-countdown.soon,.anniv-countdown.soon,.memorial-countdown.soon,.anniv-ring,.bsd,.tab-btn.active > span:first-child{animation:none}
+  .ev-floats{display:none}
+}
+
 
 /* ---- prefers-reduced-motion: מרוכז כאן במקום מפוזר ליד כל אלמנט — כל כרטיסי הכניסה-
    המדורגת (ענפים/אירועים/יארצייטים/צמתי עץ) וכרטיסיות הטאב במקום אחד. מיקום בסוף הקובץ
@@ -1102,6 +1144,7 @@ summary:hover{background:rgba(255,217,61,.35)}
   </div>
 
   <div class="panel" id="panel-events">
+    <div class="ev-floats" aria-hidden="true"><span class="ev-float" style="left:6%;animation-delay:0s;font-size:26px">🎈</span><span class="ev-float" style="left:22%;animation-delay:-9s;font-size:22px">✨</span><span class="ev-float" style="left:38%;animation-delay:-4s;font-size:28px">🎉</span><span class="ev-float" style="left:55%;animation-delay:-14s;font-size:24px">🎁</span><span class="ev-float" style="left:70%;animation-delay:-7s;font-size:26px">⭐</span><span class="ev-float" style="left:86%;animation-delay:-18s;font-size:28px">🎊</span></div>
     <div class="wrap">
       <div class="ev-head">
         <span class="ev-top">אירועי המשפחה 🎈</span>
@@ -2208,7 +2251,7 @@ function buildEvents(){
     if(!isCurrentMonthView) return '';
     const diff = h.day - curDay;
     if(diff <= 0) return '';
-    return `<div class="${cls}">${diff === 1 ? 'מחר' : `בעוד ${diff} ימים`}</div>`;
+    return `<div class="${cls}${diff === 1 ? ' soon' : ''}">${diff === 1 ? 'מחר' : `בעוד ${diff} ימים`}</div>`;
   };
 
   /* גיל/שנים — רק כשיש שנה בתאריך */
@@ -2420,7 +2463,36 @@ function buildEvents(){
     memList.innerHTML = '';
     memEmpty.classList.remove('hidden');
   }
+
+  /* ---- הבאנר הרץ: אירועים חיים (היום + 7 ימים הקרובים) לפני הברכות הקבועות ---- */
+  (function updateTicker(){
+    const track = document.querySelector('.ticker-track');
+    if(!track) return;
+    const items = [];
+    const full = e => (e.nick || shortName(e.n)) + (e.fam ? ' ' + e.fam : '');
+    const couple = e => (e.nick || shortName(e.n)) + ' ♥ ' + (e.snick || shortName(e.sn)) + (e.fam ? ' ' + e.fam : '');
+    const when = d => d === 1 ? 'מחר' : 'בעוד ' + d + ' ימים';
+    if(isCurrentMonthView){
+      events.filter(e=>e.h.day === curDay).forEach(e=>items.push('🎂 היום יום הולדת: ' + full(e)));
+      annivs.filter(e=>e.h.day === curDay).forEach(e=>items.push('💍 היום יום נישואין: ' + couple(e)));
+      yahr.filter(e=>e.h.day === curDay).forEach(e=>items.push('🕯️ היום יום זיכרון: ' + full(e)));
+      events.filter(e=>e.h.day > curDay && e.h.day <= curDay + 7).forEach(e=>items.push('🎈 ' + when(e.h.day - curDay) + ': ' + full(e)));
+      annivs.filter(e=>e.h.day > curDay && e.h.day <= curDay + 7).forEach(e=>items.push('💍 ' + when(e.h.day - curDay) + ': ' + couple(e)));
+    }
+    items.push('ככוכבי השמים', 'שבט המרטונים', 'בלי עין הרע', 'עמו"ש בבריאות ושמחה');
+    const seg = items.map(esc).join(' ✦ ') + ' ✦';
+    track.innerHTML = '<span>' + seg + '</span>'.repeat(1) + '<span>' + seg + '</span>';
+    track.style.setProperty('--dur', Math.max(22, Math.round(seg.length * 0.2)) + 's');
+  })();
 }
+
+/* לחיצה על כרטיס אירוע = פיצוץ קונפטי; לחיצה על הבאנר = מעבר לטאב האירועים */
+document.getElementById('panel-events').addEventListener('click', e=>{
+  const card = e.target.closest('.event-card, .anniv-card, .memorial-card');
+  if(!card || e.target.closest('button, input, form, .greet-wrap, .edit-dot')) return;
+  sparkleBurst(card);
+});
+(function(){ const t = document.querySelector('.ticker'); if(t) t.addEventListener('click', ()=>document.getElementById('tabBtnEvents').click()); })();
 
 /* חיווט בורר החודש (החיצים הפוכים כי הממשק RTL) */
 document.getElementById('monthPrev').addEventListener('click', ()=>stepMonth(-1));
