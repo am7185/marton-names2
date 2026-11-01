@@ -932,6 +932,98 @@ details.branch.hidden{display:none}
   .today-card{padding:14px}
 }
 
+/* ================= ערכת POP — קרם, קווי מתאר עבים, צללים קשיחים, צבעים בוהקים =================
+   שכבה אחרונה בכוונה: דורסת את העיצוב הבסיסי בלי לגעת במבנה/לוגיקה. */
+:root,:root[data-theme="dark"],:root[data-theme="light"]{
+  --ink:#12291f;--muted:#4d6a5c;--accent:#ff9f43;--accent-soft:rgba(255,159,67,.18);--accent-line:#12291f;
+  --card:#ffffff;--line:rgba(18,41,31,.16);--btn-bg:#12291f;--btn-ink:#ffd93d;--pill:#fff0c2;--shadow:6px 6px 0 #12291f;
+  --pop-yellow:#ffd93d;--pop-coral:#ff6b6b;--pop-mint:#8ae8bd;--pop-sky:#8fd0ff;--pop-lilac:#d2b5ff;
+}
+body{
+  background-color:#fff6dc;
+  background-image:radial-gradient(rgba(18,41,31,.18) 1.4px,transparent 1.4px);
+  background-size:22px 22px;background-attachment:fixed;
+}
+/* ticker */
+.ticker{background:#12291f;color:#ffd93d;border-bottom:3px solid #12291f;overflow:hidden;white-space:nowrap;direction:ltr;font-weight:800;font-size:14px;letter-spacing:.5px}
+.ticker-track{display:inline-flex;gap:0;padding:7px 0;animation:tickerMove 32s linear infinite}
+.ticker-track span{padding-inline:22px}
+@keyframes tickerMove{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+/* nav */
+.tabs-nav{background:#fff6dc;border-bottom:3px solid #12291f}
+.tab-indicator{background:var(--pop-yellow);border:3px solid #12291f;border-radius:14px;box-shadow:3px 3px 0 #12291f}
+.tab-btn{border-radius:14px;color:#12291f}
+.tab-btn:not(.active):hover{background:var(--pop-mint);color:#12291f}
+.tab-btn.active{color:#12291f}
+/* hero */
+.bsd{display:inline-block;background:var(--pop-yellow);border:2px solid #12291f;border-radius:10px;padding:1px 12px;font-weight:800;color:#12291f;transform:rotate(-4deg);box-shadow:3px 3px 0 #12291f}
+.hero{border:3px solid #12291f;box-shadow:8px 8px 0 #12291f}
+.status{border:2px solid #12291f;background:var(--pop-mint);color:#12291f;font-weight:800}
+.search,.tree-search{border:3px solid #12291f;background:#fff;border-radius:14px;box-shadow:4px 4px 0 #12291f}
+.search:focus,.tree-search:focus{box-shadow:6px 6px 0 var(--pop-coral);border-color:#12291f}
+.print-btn{background:var(--pop-yellow);color:#12291f;border:3px solid #12291f;border-radius:14px;box-shadow:5px 5px 0 #12291f;font-weight:800;transition:transform .12s ease-out,box-shadow .12s ease-out,background .15s}
+.print-btn:hover{background:var(--pop-coral);color:#12291f;transform:translate(-2px,-2px);box-shadow:7px 7px 0 #12291f}
+.print-btn:active{transform:translate(4px,4px);box-shadow:1px 1px 0 #12291f}
+/* matriarch */
+.matriarch{background:#fff1b8;border:3px solid #12291f;border-radius:18px;box-shadow:6px 6px 0 #12291f}
+.matriarch .dt{color:#c2410c}
+/* toolbar */
+.toolbar .ttl{color:#12291f;font-weight:800}
+.linkbtn{color:#12291f;font-weight:800}
+.linkbtn:hover{background:var(--pop-yellow)}
+.linkbtn.addbtn{background:var(--pop-coral);color:#12291f;border:3px solid #12291f;border-radius:14px;box-shadow:4px 4px 0 #12291f;animation:none}
+.linkbtn.addbtn:hover{background:var(--pop-yellow);box-shadow:6px 6px 0 #12291f;transform:translate(-2px,-2px)}
+.linkbtn.addbtn:active{transform:translate(3px,3px);box-shadow:1px 1px 0 #12291f}
+/* branches */
+details.branch{border:3px solid #12291f;border-inline-start:12px solid var(--bc,#ff9f43);border-radius:16px;box-shadow:6px 6px 0 #12291f;background:#fff}
+details.branch:has(summary:hover){box-shadow:9px 9px 0 #12291f;transform:translate(-2px,-2px)}
+summary:hover{background:rgba(255,217,61,.35)}
+.b-avatar{border:3px solid #12291f;border-radius:12px;box-shadow:3px 3px 0 #12291f;font-weight:900}
+.b-count{background:var(--pop-sky);color:#12291f;border:2px solid #12291f;font-weight:800}
+.b-body{border-top:3px solid #12291f}
+.row .dt{background:var(--pop-yellow);color:#12291f;border:2px solid #12291f;font-weight:800}
+.row .dt-death{border:2px solid #12291f;background:#e9e2d2;color:#12291f}
+.row.hit{background:var(--pop-yellow)}
+.chev{color:#12291f}
+/* events */
+.ev-month,.month-select{text-shadow:3px 3px 0 var(--pop-yellow)}
+.month-arrow{border:3px solid #12291f;box-shadow:3px 3px 0 #12291f;background:#fff;color:#12291f}
+.month-arrow:hover{background:var(--pop-yellow);color:#12291f;border-color:#12291f}
+.today-card{background:#fff3b0;border:3px solid #12291f;box-shadow:8px 8px 0 #12291f}
+.today-label{color:#c2410c}
+.event-card{border:3px solid #12291f;border-radius:18px;box-shadow:5px 5px 0 #12291f;background:#fff;rotate:-.7deg}
+.event-card:nth-child(even){rotate:.7deg}
+.event-card:nth-child(5n+1){background:#ffe9a8}
+.event-card:nth-child(5n+2){background:#ffd0d0}
+.event-card:nth-child(5n+3){background:#c9f5e0}
+.event-card:nth-child(5n+4){background:#d2eaff}
+.event-card:nth-child(5n+5){background:#e8dbff}
+.event-card:hover{border-color:#12291f;box-shadow:8px 8px 0 #12291f}
+.event-card.is-today{background:var(--pop-yellow);border-color:#12291f;box-shadow:7px 7px 0 var(--pop-coral)}
+.event-icon{background:#fff;border:3px solid #12291f;box-shadow:3px 3px 0 #12291f}
+.e-date{background:#fff;color:#12291f;border:2px solid #12291f;font-weight:800}
+.e-countdown,.anniv-countdown,.memorial-countdown{color:#12291f;opacity:1;font-weight:800}
+.greet-toggle{border:2px solid #12291f;background:#fff;font-weight:800}
+.anniv-card{border:3px solid #12291f;border-inline-start:3px solid #12291f;background:#ffd6ea;box-shadow:4px 4px 0 #12291f;border-radius:16px}
+.anniv-ring{border:3px solid #12291f;background:#fff;box-shadow:2px 2px 0 #12291f}
+.anniv-date{background:#fff;color:#12291f;border:2px solid #12291f}
+.memorial-card{border:3px solid #12291f;border-inline-start:3px solid #12291f;background:#eadfc8;box-shadow:4px 4px 0 #12291f;border-radius:16px}
+.memorial-flame{background:#fff;border:3px solid #12291f}
+.ev-panel-head{color:#12291f}
+.ev-panel-sub{background:var(--pop-mint);color:#12291f;border:2px solid #12291f}
+/* tree */
+.tree-top{background:none;-webkit-text-fill-color:#12291f;color:#12291f;text-shadow:3px 3px 0 var(--pop-yellow);font-weight:900}
+.tree-viewport{border:3px solid #12291f;box-shadow:7px 7px 0 #12291f;border-radius:18px}
+.tool-btn{border:3px solid #12291f;box-shadow:3px 3px 0 #12291f;background:#fff;color:#12291f;font-weight:800}
+.tool-btn:hover{background:var(--pop-yellow)}
+.dnode{border:2.5px solid #12291f;border-top:7px solid var(--bc,#ff9f43);box-shadow:3px 3px 0 #12291f}
+.dnode.has-kids:hover{box-shadow:5px 5px 0 #12291f}
+.d-fam{border:1.5px solid #12291f;color:#12291f;background:var(--pop-yellow)}
+/* modal / install */
+.modal-card{border:3px solid #12291f;box-shadow:8px 8px 0 #12291f;border-radius:20px}
+.install-banner{border:3px solid #12291f;box-shadow:4px 4px 0 #12291f}
+@media (prefers-reduced-motion: reduce){.ticker-track{animation:none}}
+
 /* ---- prefers-reduced-motion: מרוכז כאן במקום מפוזר ליד כל אלמנט — כל כרטיסי הכניסה-
    המדורגת (ענפים/אירועים/יארצייטים/צמתי עץ) וכרטיסיות הטאב במקום אחד. מיקום בסוף הקובץ
    בכוונה, מאותה סיבה כמו הבלוק שמעליו: לנצח בקסקדה מול ה-animation הבסיסי שמוגדר מוקדם
@@ -964,6 +1056,7 @@ details.branch.hidden{display:none}
     <button class="tab-btn" id="tabBtnEvents"><span>🎂</span> <span class="tab-full">אירועי החודש</span><span class="tab-short">אירועים</span></button>
     <button class="tab-btn" id="tabBtnTree"><span>🌳</span> <span class="tab-full">עץ המשפחה</span><span class="tab-short">עץ</span></button>
   </nav>
+  <div class="ticker" aria-hidden="true"><div class="ticker-track"><span>✦ ככוכבי השמים ✦ שבט המרטונים ✦ בלי עין הרע ✦ עמו"ש בבריאות ושמחה ✦</span><span>✦ ככוכבי השמים ✦ שבט המרטונים ✦ בלי עין הרע ✦ עמו"ש בבריאות ושמחה ✦</span><span>✦ ככוכבי השמים ✦ שבט המרטונים ✦ בלי עין הרע ✦ עמו"ש בבריאות ושמחה ✦</span><span>✦ ככוכבי השמים ✦ שבט המרטונים ✦ בלי עין הרע ✦ עמו"ש בבריאות ושמחה ✦</span></div></div>
 
   <div class="panel active" id="panel-names">
   <div class="wrap">
