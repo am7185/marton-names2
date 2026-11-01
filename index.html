@@ -1023,6 +1023,14 @@ summary:hover{background:rgba(255,217,61,.35)}
 .modal-card{border:3px solid #12291f;box-shadow:8px 8px 0 #12291f;border-radius:20px}
 .install-banner{border:3px solid #12291f;box-shadow:4px 4px 0 #12291f}
 @media (prefers-reduced-motion: reduce){.ticker-track{animation:none}}
+/* ---- הוספת ילד/ילדה (טאב אירועים) ---- */
+.ev-add-child{display:inline-block;margin-top:14px;padding:10px 20px;font:900 17px 'Assistant',sans-serif;color:#12291f;background:var(--pop-mint);border:3px solid #12291f;border-radius:14px;box-shadow:5px 5px 0 #12291f;cursor:pointer;transition:transform .12s ease-out,box-shadow .12s ease-out,background .15s}
+.ev-add-child:hover{background:var(--pop-yellow);transform:translate(-2px,-2px);box-shadow:7px 7px 0 #12291f}
+.ev-add-child:active{transform:translate(4px,4px);box-shadow:1px 1px 0 #12291f}
+.add-child-dot{display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;width:26px;height:26px;margin-inline-start:2px;border:2px solid #12291f;border-radius:50%;background:var(--pop-mint);font-size:14px;line-height:1;cursor:pointer;padding:0;transition:transform .12s ease-out,background .15s}
+.add-child-dot:hover{background:var(--pop-yellow);transform:scale(1.15)}
+.add-child-dot:active{transform:scale(.9)}
+
 /* ================= דינמיות ================= */
 .ticker{cursor:pointer}
 .ticker:hover .ticker-track{animation-play-state:paused}
@@ -1154,6 +1162,7 @@ summary:hover .b-avatar{rotate:-8deg;scale:1.1}
           <button class="month-arrow" id="monthNext" aria-label="חודש הבא">‹</button>
         </div>
         <button class="month-today hidden" id="monthToday">↩ חזרה לחודש הנוכחי</button>
+        <button class="ev-add-child hidden" id="evAddChildBtn" type="button">👶 הוספת ילד / ילדה חדשים</button>
         <div class="ev-hebdate" id="evHebDate"></div>
       </div>
 
@@ -1301,7 +1310,7 @@ summary:hover .b-avatar{rotate:-8deg;scale:1.1}
   <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="editTitle">
     <button class="modal-close" id="editClose" aria-label="סגירה">✕</button>
     <h3 id="editTitle">✏️ עריכת שם</h3>
-    <p class="modal-sub">עריכה ומחיקה דורשות קוד משפחתי</p>
+    <p class="modal-sub">השינויים נשמרים ישירות בגיליון המשפחתי</p>
 
     <form id="editForm">
       <label class="fld">
@@ -1337,11 +1346,6 @@ summary:hover .b-avatar{rotate:-8deg;scale:1.1}
       <label class="fld">
         <span>כינוי בן/בת הזוג (אופציונלי)</span>
         <input type="text" id="edSpouseNickname" placeholder="לדוגמה: איצי">
-      </label>
-
-      <label class="fld">
-        <span>קוד משפחתי *</span>
-        <input type="password" id="edCode" placeholder="הקוד שהמשפחה קבעה" required>
       </label>
 
       <div class="modal-msg" id="editMsg"></div>
@@ -1739,6 +1743,12 @@ function eventEditBtnHTML(id){
   if(!editMode || id==null) return '';
   const baseId = String(id).replace(/-s$/, '');
   return `<button class="edit-dot" data-editid="${esc(baseId)}" title="עריכה / מחיקה" aria-label="עריכת שם זה">✎</button>`;
+}
+
+function eventAddChildBtnHTML(id){
+  if(!editMode || id==null) return '';
+  const baseId = String(id).replace(/-s$/, '');
+  return `<button type="button" class="add-child-dot" data-addchild="${esc(baseId)}" title="הוספת ילד/ילדה" aria-label="הוספת ילד או ילדה">👶</button>`;
 }
 
 function kidHTML(p, fam){
@@ -2299,7 +2309,7 @@ function buildEvents(){
       /* שם פרטי (או כינוי) + שם משפחה יחד בשורה אחת — בלי "בן/בת אמו" ובלי תגית "משפחת" נפרדת */
       const displayName = (e.nick || shortName(e.n)) + (e.fam ? ` ${e.fam}` : '');
       /* הגיל צמוד לשם (שייך לחוגג/ת) ולא לשורת "נשוי/בנו של" שאחריו, כדי שלא ייקרא כאילו הגיל שייך לבן/בת הזוג */
-      const nameLine = `🎂 ${esc(displayName)}${a ? ` <span class="today-age">${esc(a)} 🎉</span>` : ''} ${eventEditBtnHTML(e.id)}`;
+      const nameLine = `🎂 ${esc(displayName)}${a ? ` <span class="today-age">${esc(a)} 🎉</span>` : ''} ${eventEditBtnHTML(e.id)}${eventAddChildBtnHTML(e.id)}`;
       const metaLine = e.parent ? `<div class="today-meta-line">${esc(e.parent)}</div>` : '';
       /* ברכת המשפחה — בגיל 13 (בן) בר מצווה, בגיל 12 (בת) בת מצווה, אחרת ברכת יום הולדת רגילה.
          מוצגת רק בכרטיס "חוגגים היום" (יום ההולדת של היום ממש), עם השם האישי/כינוי בפתיח */
@@ -2353,7 +2363,7 @@ function buildEvents(){
       /* שם המשפחה בשורה נפרדת, ממורכזת, מתחת לשני השמות — נגרר/נחתך כשהוא מוצמד לשורה ארוכה */
       const p1 = e.nick || shortName(e.n);
       const p2 = e.snick || shortName(e.sn);
-      const nameLine = `💍 ${esc(p1)} ♥ ${esc(p2)}${years} ${eventEditBtnHTML(e.id)}`;
+      const nameLine = `💍 ${esc(p1)} ♥ ${esc(p2)}${years} ${eventEditBtnHTML(e.id)}${eventAddChildBtnHTML(e.id)}`;
       const famLine = e.fam ? `<div class="today-fam-line">${esc(e.fam)}</div>` : '';
       const metaLine = e.parent ? `<div class="today-meta-line">${esc(e.parent)}</div>` : '';
       return `<div class="today-row">
@@ -2389,7 +2399,7 @@ function buildEvents(){
       const displayName = (e.nick || shortName(e.n)) + (e.fam ? ` ${e.fam}` : '');
       return `<div class="event-card${isToday?' is-today':''}" style="--i:${i}">
         <div class="event-icon">${isToday?'🥳':emojis[i % emojis.length]}</div>
-        <span class="e-name">${esc(displayName)} ${eventEditBtnHTML(e.id)}</span>
+        <span class="e-name">${esc(displayName)} ${eventEditBtnHTML(e.id)}${eventAddChildBtnHTML(e.id)}</span>
         ${parentLine}
         <div class="e-date">${esc(dateTxt)}</div>
         ${dueBadge(e.h,'e-countdown')}
@@ -2420,7 +2430,7 @@ function buildEvents(){
       return `<div class="anniv-card${isToday?' is-today':''}" style="--i:${i}">
         <span class="anniv-ring">${isToday?'🎊':'💍'}</span>
         <div class="anniv-info">
-          <div class="anniv-names">${namesLine} ${eventEditBtnHTML(e.id)}</div>
+          <div class="anniv-names">${namesLine} ${eventEditBtnHTML(e.id)}${eventAddChildBtnHTML(e.id)}</div>
           ${famLine}
           ${parentLine}
           <div class="anniv-date">${esc(dateTxt)}${isToday?' · <span class="anniv-today-tag">היום</span>':''}</div>
@@ -2463,6 +2473,8 @@ function buildEvents(){
     memList.innerHTML = '';
     memEmpty.classList.remove('hidden');
   }
+
+  const evAdd = document.getElementById('evAddChildBtn'); if(evAdd) evAdd.classList.toggle('hidden', !editMode);
 
   /* ---- הבאנר הרץ: אירועים חיים (היום + 7 ימים הקרובים) לפני הברכות הקבועות ---- */
   (function updateTicker(){
@@ -3009,14 +3021,29 @@ const addSubmit = document.getElementById('addSubmit');
 let addRelation = 'בן';
 let chosenParent = null;
 
-function openAddModal(){
+function openAddModal(title){
+  document.getElementById('addTitle').textContent = typeof title === 'string' ? title : '➕ הוספת שם חדש';
   addBackdrop.classList.add('show');
   document.getElementById('addFirstName').focus();
 }
 function closeAddModal(){
   addBackdrop.classList.remove('show');
 }
-document.getElementById('openAddBtn').addEventListener('click', openAddModal);
+/* הוספת ילד/ילדה מטאב האירועים — עם הורה שנבחר מראש כשלוחצים על 👶 בכרטיס */
+function openAddChildFor(id){
+  openAddModal('👶 הוספת ילד / ילדה חדשים');
+  const row = id && liveRows ? liveRows.find(r => String(r.ID) === String(id)) : null;
+  if(row) chooseParent(row);
+  document.getElementById('addFirstName').focus();
+}
+document.getElementById('evAddChildBtn').addEventListener('click', ()=>openAddChildFor(null));
+document.getElementById('panel-events').addEventListener('click', e=>{
+  const b = e.target.closest('.add-child-dot');
+  if(!b) return;
+  e.preventDefault(); e.stopPropagation();
+  openAddChildFor(b.dataset.addchild);
+}, true);
+document.getElementById('openAddBtn').addEventListener('click', ()=>openAddModal());
 document.getElementById('addClose').addEventListener('click', closeAddModal);
 addBackdrop.addEventListener('click', e=>{ if(e.target === addBackdrop) closeAddModal(); });
 document.addEventListener('keydown', e=>{ if(e.key === 'Escape' && addBackdrop.classList.contains('show')) closeAddModal(); });
@@ -3185,7 +3212,7 @@ addForm.addEventListener('submit', async e=>{
   }
 });
 
-/* ---------- עריכה / מחיקה של שם קיים (דורש קוד משפחתי) ---------- */
+/* ---------- עריכה / מחיקה של שם קיים (בלי סיסמה — הקוד נשלח אוטומטית) ---------- */
 const editBackdrop = document.getElementById('editBackdrop');
 const editForm = document.getElementById('editForm');
 const editMsg = document.getElementById('editMsg');
@@ -3193,9 +3220,8 @@ const editSubmit = document.getElementById('editSubmit');
 const editDelete = document.getElementById('editDelete');
 let editingId = null;
 
-const REMEMBER_KEY = 'martonFamilyCode';
-function rememberedCode(){ try{ return sessionStorage.getItem(REMEMBER_KEY) || ''; }catch(e){ return ''; } }
-function rememberCode(c){ try{ sessionStorage.setItem(REMEMBER_KEY, c); }catch(e){} }
+/* ה-Apps Script עדיין בודק קוד בצד השרת; במקום לבקש אותו מהמשתמש שולחים אותו אוטומטית */
+const AUTO_CODE = 'marton';
 
 function openEditModal(id){
   if(!liveRows) return;
@@ -3212,7 +3238,6 @@ function openEditModal(id){
   document.getElementById('edAnniversary').value = String(row.AnniversaryDate ?? '');
   document.getElementById('edNickname').value       = String(row.Nickname ?? '');
   document.getElementById('edSpouseNickname').value = String(row.SpouseNickname ?? '');
-  document.getElementById('edCode').value        = rememberedCode();
   editMsg.textContent = ''; editMsg.className = 'modal-msg';
   editBackdrop.classList.add('show');
   document.getElementById('edName').focus();
@@ -3248,10 +3273,9 @@ async function sendSheetAction(payload){
 editForm.addEventListener('submit', async e=>{
   e.preventDefault();
   editMsg.textContent = ''; editMsg.className = 'modal-msg';
-  const code = document.getElementById('edCode').value.trim();
+  const code = AUTO_CODE;
   const name = document.getElementById('edName').value.trim();
   if(!name){ editMsg.textContent = 'נא למלא שם'; editMsg.className = 'modal-msg err'; return; }
-  if(!code){ editMsg.textContent = 'נא להזין קוד משפחתי'; editMsg.className = 'modal-msg err'; return; }
 
   const spouseName = document.getElementById('edSpouseName').value.trim();
   const payload = {
@@ -3283,7 +3307,6 @@ editForm.addEventListener('submit', async e=>{
   try{
     const result = await sendSheetAction(payload);
     if(result.ok){
-      rememberCode(code);
       editMsg.textContent = 'השינויים נשמרו!';
       editMsg.className = 'modal-msg ok';
       setTimeout(async ()=>{ closeEditModal(); await loadFromSheet(); }, 900);
@@ -3301,8 +3324,7 @@ editForm.addEventListener('submit', async e=>{
 });
 
 editDelete.addEventListener('click', async ()=>{
-  const code = document.getElementById('edCode').value.trim();
-  if(!code){ editMsg.textContent = 'נא להזין קוד משפחתי'; editMsg.className = 'modal-msg err'; return; }
+  const code = AUTO_CODE;
   const nm = document.getElementById('edName').value.trim();
   if(!confirm(`למחוק את "${nm}" מהרשימה?\nלא ניתן לשחזר מהאתר.`)) return;
 
@@ -3311,7 +3333,6 @@ editDelete.addEventListener('click', async ()=>{
   try{
     const result = await sendSheetAction({action:'delete', code, ID: editingId});
     if(result.ok){
-      rememberCode(code);
       editMsg.textContent = 'השם נמחק';
       editMsg.className = 'modal-msg ok';
       setTimeout(async ()=>{ closeEditModal(); await loadFromSheet(); }, 900);
